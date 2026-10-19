@@ -188,10 +188,10 @@
         {
           "p": "Who decides to call an MCP tool?",
           "opcoes": [
-            "The server, when it receives new data",
+            "The server, whenever it receives new data from an external system",
             "The model, based on the name, the description, and the schema",
             "The person, by picking from a menu in the client",
-            "The transport, depending on the message type"
+            "The transport, depending on the type of message that passes through the pipe"
           ],
           "certa": 1,
           "explica": "A tool is the model's choice. A menu for the person is a prompt; data the app attaches is a resource.",
@@ -215,9 +215,9 @@
           "p": "What did the 2026-07-28 revision remove from the protocol?",
           "opcoes": [
             "The initialize handshake and the session",
-            "Tools with an input schema",
+            "The tools with an input schema in JSON Schema",
             "The stdio transport",
-            "The JSON-RPC format"
+            "The JSON-RPC format of the messages between the two sides"
           ],
           "certa": 0,
           "explica": "stdio and Streamable HTTP stay; so does JSON-RPC. Gone are initialize, the session, and <code>Mcp-Session-Id</code>; <code>server/discover</code> came in.",

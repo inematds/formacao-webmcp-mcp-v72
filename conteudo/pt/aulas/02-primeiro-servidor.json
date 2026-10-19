@@ -216,8 +216,8 @@
           "p": "Por que o kit usa npm ci em vez de npm install?",
           "opcoes": [
             "Instala exatamente as versões do package-lock.json",
-            "É mais rápido em qualquer caso, sem diferença",
-            "Baixa a versão mais nova do SDK",
+            "É mais rápido em qualquer caso, sem nenhuma outra diferença prática",
+            "Baixa sempre a versão mais nova publicada do SDK oficial",
             "Dispensa o package.json"
           ],
           "certa": 0,
@@ -241,10 +241,10 @@
         {
           "p": "O teste mostra <code>era: modern</code>. O que isso garante?",
           "opcoes": [
-            "Que o servidor só aceita clientes novos",
+            "Que o servidor só aceita clientes novos e recusa os antigos",
             "Que cliente e servidor combinaram a revisão 2026-07-28",
             "Que o Node está na versão mais nova",
-            "Que o servidor usa SSE"
+            "Que o servidor passou a responder pelo transporte SSE"
           ],
           "certa": 1,
           "explica": "O cliente pediu <code>mode: 'auto'</code> e o servidor ofereceu 2026-07-28. Cliente antigo continua atendido pelo mesmo servidor (aula 4).",

@@ -233,9 +233,9 @@
           "p": "Qual destas é a melhor descrição para uma ferramenta?",
           "opcoes": [
             "Reserva uma vaga para o e-mail; tem consequência e pede confirmação",
-            "Gerencia turmas",
+            "Gerencia turmas, vagas, reservas e tudo o que for preciso",
             "Função reservar do módulo de agenda",
-            "Faz reservas e outras coisas úteis do sistema"
+            "Faz reservas e várias outras coisas úteis do sistema de turmas"
           ],
           "certa": 0,
           "explica": "Diz o que faz, sobre o quê e que tem consequência. \"Gerencia\" e \"outras coisas\" fazem o modelo adivinhar quando chamar.",

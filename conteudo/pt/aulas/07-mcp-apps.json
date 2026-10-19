@@ -146,9 +146,9 @@
         {
           "p": "Como uma ferramenta diz ao cliente que tem interface?",
           "opcoes": [
-            "Devolvendo HTML no campo content",
+            "Devolvendo o HTML da interface inteiro no campo content",
             "Com outro nome terminado em _ui",
-            "Pelo cabeçalho Mcp-Name",
+            "Pelo cabeçalho Mcp-Name enviado junto de cada chamada HTTP",
             "Com _meta.ui.resourceUri apontando um recurso ui://"
           ],
           "certa": 3,
@@ -159,9 +159,9 @@
         {
           "p": "O cliente não tem suporte a MCP Apps. O que acontece com ver_turmas?",
           "opcoes": [
-            "A chamada falha com erro",
+            "A chamada falha com erro e o modelo tenta outra ferramenta",
             "Funciona como ferramenta comum e devolve o texto",
-            "O servidor recusa a conexão",
+            "O servidor recusa a conexão desse cliente logo no discover",
             "O modelo não vê a ferramenta"
           ],
           "certa": 1,
@@ -185,8 +185,8 @@
           "p": "Por que o kit diz que o embutir do bundle é atalho?",
           "opcoes": [
             "Depende do nome interno do build 2.0.3 e pode quebrar noutra versão",
-            "Porque é proibido pela especificação",
-            "Porque deixa o servidor mais lento",
+            "Porque a especificação do MCP Apps proíbe embutir JavaScript no HTML",
+            "Porque deixa o servidor bem mais lento a cada leitura do recurso",
             "Porque não funciona no Node 20"
           ],
           "certa": 0,

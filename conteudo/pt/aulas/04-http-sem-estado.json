@@ -214,9 +214,9 @@
         {
           "p": "Para que servem as guardas de Host e Origin no servidor em 127.0.0.1?",
           "opcoes": [
-            "Para limitar o tamanho do corpo",
+            "Para limitar o tamanho do corpo de cada pedido recebido",
             "Para barrar DNS rebinding de páginas maliciosas",
-            "Para escolher a revisão do protocolo",
+            "Para escolher a revisão do protocolo que cada pedido vai usar",
             "Para comprimir a resposta"
           ],
           "certa": 1,

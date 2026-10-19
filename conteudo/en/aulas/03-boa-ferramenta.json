@@ -233,9 +233,9 @@
           "p": "Which of these is the best description for a tool?",
           "opcoes": [
             "Books a seat for the email; has consequences and asks for confirmation",
-            "Manages classes",
+            "Manages classes, seats, bookings, and everything else that's needed",
             "The reservar function from the scheduling module",
-            "Makes bookings and other useful things in the system"
+            "Makes bookings and several other useful things in the class system"
           ],
           "certa": 0,
           "explica": "It says what it does, on what, and that it has consequences. \"Manages\" and \"other things\" make the model guess when to call it.",

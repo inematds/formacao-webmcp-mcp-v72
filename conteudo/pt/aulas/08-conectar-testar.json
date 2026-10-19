@@ -402,9 +402,9 @@
           "p": "Por que a bateria usa handler.fetch e não InMemoryTransport para testar a revisão nova?",
           "opcoes": [
             "O par em memória só conecta a era 2025",
-            "handler.fetch é mais rápido",
+            "handler.fetch é mais rápido e por isso é o recomendado",
             "InMemoryTransport precisa de porta",
-            "handler.fetch dispensa o cliente"
+            "handler.fetch dispensa o cliente e chama o handler direto"
           ],
           "certa": 0,
           "explica": "A doc do SDK v2: createLinkedPair conecta só instâncias da era 2025; handler.fetch é a entrada no mesmo processo para a 2026-07-28.",
@@ -414,10 +414,10 @@
         {
           "p": "Depois de claude mcp add -s project, claude mcp get mostra Pending approval. O que falta?",
           "opcoes": [
-            "Publicar no Registry",
+            "Publicar o servidor no Registry oficial antes de usar",
             "Abrir o claude na pasta e aprovar o servidor",
             "Instalar o Inspector",
-            "Gerar um token OAuth"
+            "Gerar um token OAuth e passar no cabeçalho da conexão"
           ],
           "certa": 1,
           "explica": "Servidor de projeto (.mcp.json) pede aprovação na primeira vez. Aprovado, aparece ✔ Connected.",

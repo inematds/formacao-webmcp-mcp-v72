@@ -214,8 +214,8 @@
           "opcoes": [
             "Devolve isError e não reserva",
             "Reserva assim mesmo e avisa",
-            "Pergunta de novo indefinidamente",
-            "Derruba a conexão"
+            "Pergunta de novo, indefinidamente, até o usuário dizer sim",
+            "Derruba a conexão e obriga o cliente a começar do zero"
           ],
           "certa": 0,
           "explica": "<code>inputResponse</code> mostra action diferente de accept; o handler devolve isError e a vaga continua lá.",

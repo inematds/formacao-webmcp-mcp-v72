@@ -80,7 +80,7 @@
         "abas": [
           {
             "rot": "Captured output (10/19/2026)",
-            "html": "<pre>(…) git clone omitido nesta captura: o repositório ainda não estava publicado\n\nadded 19 packages, and audited 20 packages in 5s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre>"
+            "html": "<pre>Cloning into '~/projetos/formacao-webmcp-mcp-v72'...\n\nadded 19 packages, and audited 20 packages in 3s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre>"
           }
         ]
       }
@@ -216,8 +216,8 @@
           "p": "Why does the kit use npm ci instead of npm install?",
           "opcoes": [
             "It installs exactly the versions in package-lock.json",
-            "It's faster in every case, no difference",
-            "It downloads the newest SDK version",
+            "It's faster in every case, with no other practical difference",
+            "It always downloads the newest published version of the official SDK",
             "It makes package.json unnecessary"
           ],
           "certa": 0,
@@ -241,10 +241,10 @@
         {
           "p": "The test shows <code>era: modern</code>. What does that guarantee?",
           "opcoes": [
-            "That the server only accepts new clients",
+            "That the server only accepts new clients and refuses old ones",
             "That client and server agreed on the 2026-07-28 revision",
             "That Node is on the newest version",
-            "That the server uses SSE"
+            "That the server now responds over the SSE transport"
           ],
           "certa": 1,
           "explica": "The client asked for <code>mode: 'auto'</code> and the server offered 2026-07-28. An older client is still served by the same server (lesson 4).",

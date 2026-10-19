@@ -1,0 +1,283 @@
+{
+  "slug": "boa-ferramenta",
+  "num": 3,
+  "menu": "Tool (herramienta)",
+  "titulo": "Diseñar una buena tool: nombre, descripción, JSON Schema, idempotencia, solo lectura × con consecuencia",
+  "titulo_curto": "Diseñar una buena tool",
+  "minutos": 20,
+  "lead": "El modelo elige la tool leyendo el nombre, la descripción y el esquema; el cliente decide si pide aprobación leyendo las anotaciones. Una tool mal diseñada se llama en el momento equivocado o con el argumento equivocado. En esta clase compruebas, con un script, si tus tools dicen lo que hacen y lo que cambian.",
+  "objetivo": "escribir nombre, descripción, esquema y anotaciones que dejen al agente elegir bien y al cliente pedir confirmación cuando hay consecuencia.",
+  "competencias": [
+    "nombrar-y-describir-tool",
+    "restringir-entrada-con-esquema",
+    "anotar-lectura-y-consecuencia"
+  ],
+  "aprende": [
+    {
+      "icone": "alvo",
+      "t": "Una intención por tool, con un nombre y una descripción que la expresen"
+    },
+    {
+      "icone": "lista",
+      "t": "Esquema de entrada que rechaza el argumento equivocado antes de tu código"
+    },
+    {
+      "icone": "escudo",
+      "t": "Las cuatro anotaciones y el valor por defecto cuando no dices nada"
+    },
+    {
+      "icone": "grafico",
+      "t": "Resultado en texto y estructurado; un error que el modelo pueda leer"
+    }
+  ],
+  "hero_alt": "Banco oscuro con herramientas de precisión en fila, cada una con una etiqueta en blanco, una con un seguro rojo.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Lo que leen el modelo y el cliente",
+      "sub": "Haz clic en cada parte del registro de una tool.",
+      "nos": [
+        {
+          "icone": "alvo",
+          "titulo": "Intención",
+          "sub": "una sola",
+          "detalhe": "Empieza por el recorrido de la persona (\"encontrar un grupo con plaza\"), no por el nombre de una función de tu código. Dos tools que responden al mismo pedido hacen que el modelo adivine."
+        },
+        {
+          "icone": "caneta",
+          "titulo": "Nombre",
+          "sub": "verbo_objeto",
+          "detalhe": "Corto y con verbo: <code>buscar_turmas</code>, <code>reservar_vaga</code>. El <code>title</code> es la etiqueta para las personas; el nombre es lo que llama el modelo."
+        },
+        {
+          "icone": "chat",
+          "titulo": "Descripción",
+          "sub": "cuándo usar",
+          "detalhe": "Dice qué hace, cuándo usarla y si tiene consecuencia. Es la única explicación que recibe el modelo, junto con las descripciones de cada argumento."
+        },
+        {
+          "icone": "lista",
+          "titulo": "Esquema",
+          "sub": "entrada",
+          "forte": true,
+          "detalhe": "Zod se convierte en JSON Schema 2020-12 en <code>tools/list</code>. El SDK valida antes del handler: un argumento fuera del esquema vuelve como <code>isError</code> y tu código ni siquiera se ejecuta."
+        },
+        {
+          "icone": "escudo",
+          "titulo": "Anotaciones",
+          "sub": "pistas",
+          "detalhe": "<code>readOnlyHint</code>, <code>destructiveHint</code>, <code>idempotentHint</code>, <code>openWorldHint</code>. El cliente las usa para decidir si aprueba solo o pregunta. Son pistas: no cambian la ejecución y un cliente no debe confiar en ellas cuando vienen de un server desconocido."
+        },
+        {
+          "icone": "grafico",
+          "titulo": "Resultado",
+          "sub": "texto + dato",
+          "detalhe": "<code>content</code> para que el modelo lo lea y, con <code>outputSchema</code>, <code>structuredContent</code> validado por el SDK antes de salir."
+        }
+      ],
+      "legenda": "Semántica de las anotaciones según el tipo ToolAnnotations de la revisión 2026-07-28 (código del SDK oficial, 13/10/2026)."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "Anotaciones: qué significa no decir nada",
+      "sub": "Los valores por defecto de la especificación valen cuando omites la anotación.",
+      "passos": [
+        {
+          "titulo": "readOnlyHint",
+          "sub": "por defecto false",
+          "texto": [
+            "true = la tool no cambia el entorno. Un host puede aprobar solo una tool de solo lectura.",
+            "Sin la anotación, el cliente debe suponer que cambia algo."
+          ]
+        },
+        {
+          "titulo": "destructiveHint",
+          "sub": "padrón true",
+          "texto": [
+            "Solo tiene sentido cuando no es de solo lectura. true = puede borrar o sobrescribir; false = solo agrega (como una reserva nueva).",
+            "Omitirlo en una tool que cambia algo = el cliente la trata como destructiva."
+          ]
+        },
+        {
+          "titulo": "idempotentHint",
+          "sub": "por defecto false",
+          "texto": [
+            "true = repetir con los mismos argumentos no tiene efecto extra. Importa porque los clientes repiten llamadas (se cayó la red, MRTR en la clase 5).",
+            "<code>reservar_vaga</code> no es idempotente: dos llamadas, dos plazas."
+          ]
+        },
+        {
+          "titulo": "openWorldHint",
+          "sub": "padrón true",
+          "texto": [
+            "true = habla con el mundo externo (búsqueda en la web, API de terceros). false = dominio cerrado, como el catálogo en memoria del kit.",
+            "Una tool de mundo abierto es una puerta de entrada de contenido no confiable: el curso 4 trata ese tema."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Las dos tools lado a lado",
+      "sub": "Fragmento de kit/servidor.mjs. Fíjate en la descripción que avisa la consecuencia y en las anotaciones distintas.",
+      "blocos": [
+        {
+          "rot": "Fragmento · buscar_turmas",
+          "icone": "arquivo",
+          "conteudo": "server.registerTool(\n  'buscar_turmas',\n  {\n    title: 'Buscar turmas',\n    description: 'Lista turmas cujo título contém o termo. Só leitura: não reserva nada.',\n    inputSchema: z.object({\n      termo: z.string().min(2).describe('Parte do título, ex.: \"mcp\"'),\n      limite: z.int().min(1).max(20).optional().describe('Máximo de turmas (padrão 5)')\n    }),\n    outputSchema: z.object({ turmas: z.array(Turma) }),\n    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false }\n  },\n  async ({ termo, limite }) => { /* … */ }\n);"
+        },
+        {
+          "rot": "Fragmento · reservar_vaga",
+          "icone": "arquivo",
+          "conteudo": "server.registerTool(\n  'reservar_vaga',\n  {\n    title: 'Reservar vaga',\n    description: 'Reserva uma vaga na turma para o e-mail informado. Tem consequência: pede confirmação antes.',\n    inputSchema: z.object({\n      turma_id: z.string().describe('Id da turma, ex.: \"mcp-01\"'),\n      email: z.email().describe('E-mail de quem vai fazer a turma')\n    }),\n    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }\n  },\n  async ({ turma_id, email }, ctx) => { /* … aula 5 … */ }\n);"
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Comprueba el diseño con un script",
+      "sub": "Lista las tools, comprueba la descripción y la anotación, y llama con un argumento bueno y con uno malo.",
+      "blocos": [
+        {
+          "rot": "Terminal · comprobar tools",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nnode teste-ferramentas.mjs; echo \"saída: $?\""
+        },
+        {
+          "rot": "Archivo · kit/teste-ferramentas.mjs",
+          "icone": "arquivo",
+          "conteudo": "// teste-ferramentas.mjs — comprueba el diseño de las tools: anotaciones, argumento válido,\n// argumento inválido (el SDK lo rechaza antes de que corra tu código) y resultado estructurado.\nimport { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';\nimport { createMcpHandler } from '@modelcontextprotocol/server';\nimport { createServer } from './servidor.mjs';\n\nconst handler = createMcpHandler(createServer);\nconst cliente = new Client({ name: 'teste-ferramentas', version: '1.0.0' }, { versionNegotiation: { mode: 'auto' } });\nawait cliente.connect(new StreamableHTTPClientTransport(new URL('http://teste.local/mcp'),\n  { fetch: (url, init) => handler.fetch(new Request(url, init)) }));\n\nlet falhas = 0;\nconst confere = (ok, msg) => { console.log(`${ok ? 'ok   ' : 'FALHA'} ${msg}`); if (!ok) falhas++; };\n\nconst { tools } = await cliente.listTools();\nfor (const t of tools) {\n  confere(t.description?.length >= 20, `${t.name}: descrição com 20+ caracteres`);\n  confere(typeof t.annotations?.readOnlyHint === 'boolean', `${t.name}: diz se é só leitura`);\n}\nconst ok = await cliente.callTool({ name: 'buscar_turmas', arguments: { termo: 'mcp', limite: 1 } });\nconfere(ok.structuredContent?.turmas?.length === 1, 'buscar_turmas devolve structuredContent com 1 turma');\nconst ruim = await cliente.callTool({ name: 'buscar_turmas', arguments: { termo: 'm' } });\nconfere(ruim.isError === true, `argumento inválido vira isError: ${ruim.content[0].text.slice(0, 70)}…`);\n\nconsole.log(`${falhas} falhas`);\nawait cliente.close();\nawait handler.close();\nprocess.exitCode = falhas ? 1 : 0;"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>ok    buscar_turmas: descrição com 20+ caracteres\nok    buscar_turmas: diz se é só leitura\nok    reservar_vaga: descrição com 20+ caracteres\nok    reservar_vaga: diz se é só leitura\nok    buscar_turmas devolve structuredContent com 1 turma\nok    argumento inválido vira isError: Input validation error: Invalid arguments for tool buscar_turmas: term…\n0 falhas\nsaída: 0</pre><p>El <code>termo</code> \"m\" tiene 1 carácter y el esquema pide 2: el SDK lo rechazó y devolvió el mensaje como resultado con <code>isError</code>, que el modelo lee y corrige.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Práctica",
+      "sub": "Ensayo y la primera tool de tu servicio.",
+      "exercicios": [
+        {
+          "id": "e6",
+          "titulo": "E6 · Comprobar el kit",
+          "min": "5 min",
+          "texto": "Corre el bloque <b>comprobar tools</b>.",
+          "pronto": "<code>node teste-ferramentas.mjs</code> → <code>0 falhas</code> y <code>saída: 0</code>."
+        },
+        {
+          "id": "e7",
+          "titulo": "E7 · Haz que falle a propósito",
+          "min": "5 min",
+          "texto": "Borra la línea <code>annotations</code> de <code>buscar_turmas</code> y corre de nuevo. Después devuelve la línea.",
+          "pronto": "sin la línea: <code>FALHA buscar_turmas: diz se é só leitura</code> y <code>saída: 1</code>; con la línea de vuelta: <code>0 falhas</code>."
+        },
+        {
+          "id": "e8",
+          "titulo": "E8 · Una tool de tu servicio",
+          "min": "20 min",
+          "texto": "Elige una tool de tu <code>mapa-mcp.md</code> (clase 1) y regístrala en el <code>servidor.mjs</code> con descripción, esquema con límites y las cuatro anotaciones.",
+          "pronto": "<code>node teste-ferramentas.mjs</code> → <code>0 falhas</code> con tu tool listada en las líneas <code>ok</code>."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Prueba de la clase",
+      "perguntas": [
+        {
+          "p": "Registraste una tool que borra registros y olvidaste las anotaciones. ¿Cómo debe tratarla el cliente?",
+          "opcoes": [
+            "Como de solo lectura, porque no se dijo nada",
+            "Como idempotente y segura",
+            "Como de mundo cerrado",
+            "Como capaz de cambiar y de destruir"
+          ],
+          "certa": 3,
+          "explica": "Los valores por defecto son readOnlyHint false y destructiveHint true. Omitir no vuelve la tool más segura: vuelve al cliente más cauteloso, que es lo correcto.",
+          "ref": "passos",
+          "cert": true
+        },
+        {
+          "p": "El modelo llama a <code>buscar_turmas</code> con termo \"m\". ¿Qué pasa?",
+          "opcoes": [
+            "El handler corre y devuelve una lista vacía",
+            "El SDK la rechaza por el esquema y devuelve isError",
+            "El servidor se cae y el cliente reconecta",
+            "El cliente bloquea la llamada antes de enviarla"
+          ],
+          "certa": 1,
+          "explica": "El esquema pide un mínimo de 2 caracteres. El SDK valida antes del handler y devuelve el mensaje como resultado con <code>isError</code>, que el modelo lee.",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "¿Por qué <code>reservar_vaga</code> tiene idempotentHint false?",
+          "opcoes": [
+            "Porque habla con un servicio externo",
+            "Porque devuelve texto y no datos estructurados",
+            "Porque cada llamada repetida reserva una plaza más",
+            "Porque exige el email en el esquema"
+          ],
+          "certa": 2,
+          "explica": "Idempotente es poder repetir sin efecto extra. Dos reservas iguales ocupan dos plazas, así que el cliente no debe repetir a ciegas.",
+          "ref": "passos"
+        },
+        {
+          "p": "¿Cuál de estas es la mejor descripción para una tool?",
+          "opcoes": [
+            "Reserva una plaza para el email; tiene consecuencia y pide confirmación",
+            "Gestiona grupos, plazas, reservas y todo lo que haga falta",
+            "Función reservar del módulo de agenda",
+            "Hace reservas y varias otras cosas útiles del sistema de grupos"
+          ],
+          "certa": 0,
+          "explica": "Dice qué hace, sobre qué y que tiene consecuencia. \"Gestiona\" y \"otras cosas\" hacen que el modelo adivine cuándo llamarla.",
+          "ref": "diagrama"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "En tres frases",
+      "itens": [
+        {
+          "t": "Intención",
+          "texto": "Una por tool; nombre con verbo; descripción que avisa de la consecuencia."
+        },
+        {
+          "t": "Esquema",
+          "texto": "Límites en Zod: el SDK rechaza antes de tu código."
+        },
+        {
+          "t": "Anotaciones",
+          "texto": "Di las cuatro; omitir = destructiva para el cliente."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir más allá",
+      "links": [
+        {
+          "t": "SDK v2: tools (esquema, resultado estructurado, anotaciones)",
+          "href": "https://ts.sdk.modelcontextprotocol.io/v2/servers/tools"
+        },
+        {
+          "t": "Especificación 2026-07-28: tools",
+          "href": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools"
+        },
+        {
+          "t": "Curso 2: el mismo diseño de tool dentro de la página (WebMCP)",
+          "href": "https://inematds.github.io/formacao-webmcp-site-v72/es/"
+        }
+      ]
+    }
+  ]
+}

@@ -188,10 +188,10 @@
         {
           "p": "Quem decide chamar uma ferramenta MCP?",
           "opcoes": [
-            "O servidor, quando recebe dados novos",
+            "O servidor, sempre que recebe dados novos de um sistema externo",
             "O modelo, a partir do nome, da descrição e do esquema",
             "A pessoa, escolhendo num menu do cliente",
-            "O transporte, conforme o tipo de mensagem"
+            "O transporte, conforme o tipo de mensagem que passa pelo cano"
           ],
           "certa": 1,
           "explica": "Ferramenta é escolha do modelo. Menu para a pessoa é prompt; dado que o aplicativo anexa é recurso.",
@@ -215,9 +215,9 @@
           "p": "O que a revisão 2026-07-28 tirou do protocolo?",
           "opcoes": [
             "O aperto de mão initialize e a sessão",
-            "As ferramentas com esquema de entrada",
+            "As ferramentas com esquema de entrada em JSON Schema",
             "O transporte stdio",
-            "O formato JSON-RPC"
+            "O formato JSON-RPC das mensagens entre os dois lados"
           ],
           "certa": 0,
           "explica": "stdio e Streamable HTTP continuam; JSON-RPC também. Saíram initialize, sessão e <code>Mcp-Session-Id</code>; entrou <code>server/discover</code>.",

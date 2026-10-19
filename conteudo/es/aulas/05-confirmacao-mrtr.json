@@ -1,0 +1,288 @@
+{
+  "slug": "confirmacao-mrtr",
+  "num": 5,
+  "menu": "Confirmación",
+  "titulo": "Pedir un dato al usuario a mitad de la llamada: MRTR (InputRequiredResult)",
+  "titulo_curto": "Confirmación a mitad de la llamada (MRTR)",
+  "minutos": 20,
+  "lead": "Reservar, pagar, borrar: una acción con consecuencias pide el sí de una persona. En la revisión 2026-07-28 el servidor ya no abre una solicitud propia para preguntar. Devuelve input_required, el cliente le pregunta al usuario y repite la llamada con la respuesta. En esta lección ves las dos vueltas y el camino del no.",
+  "objetivo": "hacer que la tool con consecuencias pida confirmación a mitad de la llamada con input_required y actuar solo después del sí.",
+  "competencias": [
+    "usar-input-required-mrtr",
+    "tratar-recusa-do-usuario",
+    "declarar-capacidade-de-elicitation"
+  ],
+  "aprende": [
+    {
+      "icone": "seta",
+      "t": "Las dos vueltas: input_required y la llamada repetida con la respuesta"
+    },
+    {
+      "icone": "check",
+      "t": "acceptedContent e inputResponse: leer el sí, el no y la ausencia"
+    },
+    {
+      "icone": "chat",
+      "t": "El cliente debe declarar que sabe preguntar (elicitation)"
+    },
+    {
+      "icone": "cadeado",
+      "t": "requestState para flujos de varios pasos, firmado"
+    }
+  ],
+  "hero_alt": "Una mano desenfocada a punto de presionar un botón de confirmación, y al lado un robot industrial detenido esperando.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Dos vueltas, una reserva",
+      "sub": "Haz clic en cada paso. Tu handler se ejecuta en las dos vueltas.",
+      "estilo": "escada",
+      "nos": [
+        {
+          "icone": "enviar",
+          "titulo": "Llamada",
+          "sub": "1.ª vuelta",
+          "detalhe": "El modelo llama a <code>reservar_vaga</code> con grupo y correo. Todavía no hay respuesta del usuario."
+        },
+        {
+          "icone": "portao",
+          "titulo": "Pide",
+          "sub": "input_required",
+          "forte": true,
+          "detalhe": "El handler ve que falta la confirmación y devuelve <code>inputRequired({ inputRequests: { confirmar: inputRequired.elicit(...) } })</code>. No se reservó nada."
+        },
+        {
+          "icone": "usuario",
+          "titulo": "Pregunta",
+          "sub": "en el cliente",
+          "detalhe": "El cliente muestra el mensaje a la persona (\"¿Reservar 1 plaza en…?\") y recoge el sí o el no."
+        },
+        {
+          "icone": "seta",
+          "titulo": "Repite",
+          "sub": "2.ª vuelta",
+          "detalhe": "El cliente llama a la misma tool de nuevo, ahora con <code>inputResponses</code>. El SDK del cliente lo hace solo cuando registras el handler de <code>elicitation/create</code>."
+        },
+        {
+          "icone": "check",
+          "titulo": "Actúa",
+          "sub": "solo con sí",
+          "detalhe": "<code>acceptedContent</code> valida la respuesta con el mismo esquema. Sí: reserva. No: devuelve <code>isError</code> y no cambia nada."
+        }
+      ],
+      "legenda": "Antes (2025): el servidor iniciaba elicitation/create, sampling y roots por su cuenta. En la 2026-07-28 eso pasó a ser MRTR, y Sampling y Roots quedaron descontinuados."
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "El handler de reservar_vaga",
+      "sub": "Fragmento de kit/servidor.mjs. Está escrito para correr en las dos vueltas: lee lo que ya llegó y pide solo lo que falta.",
+      "blocos": [
+        {
+          "rot": "Fragmento · reservar_vaga (handler)",
+          "icone": "arquivo",
+          "conteudo": "async ({ turma_id, email }, ctx) => {\n  const turma = TURMAS.find(x => x.id === turma_id);\n  if (!turma) return { content: [{ type: 'text', text: `turma ${turma_id} não existe` }], isError: true };\n  if (turma.vagas < 1) return { content: [{ type: 'text', text: `turma ${turma_id} sem vagas` }], isError: true };\n\n  const resposta = inputResponse(ctx.mcpReq.inputResponses, 'confirmar');\n  if (resposta.kind === 'elicit' && resposta.action !== 'accept') {\n    return { content: [{ type: 'text', text: 'reserva cancelada pelo usuário' }], isError: true };\n  }\n  const ok = acceptedContent(ctx.mcpReq.inputResponses, 'confirmar', Confirma);\n  if (ok?.confirmar !== true) {\n    return inputRequired({\n      inputRequests: {\n        confirmar: inputRequired.elicit({ message: `Reservar 1 vaga em \"${turma.titulo}\" para ${email}?`, requestedSchema: Confirma })\n      }\n    });\n  }\n  turma.vagas -= 1;\n  return { content: [{ type: 'text', text: `reservado: ${turma_id} para ${email} (restam ${turma.vagas})` }] };\n}"
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Mira las dos vueltas: sí y no",
+      "sub": "El script muestra la 1.ª vuelta cruda (sin que el cliente la complete solo) y después el flujo normal.",
+      "blocos": [
+        {
+          "rot": "Terminal · el usuario dice sí",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nnode teste-confirmacao.mjs sim; echo \"saída: $?\""
+        },
+        {
+          "rot": "Terminal · el usuario dice no",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nnode teste-confirmacao.mjs nao; echo \"saída: $?\""
+        },
+        {
+          "rot": "Archivo · kit/teste-confirmacao.mjs",
+          "icone": "arquivo",
+          "conteudo": "// teste-confirmacao.mjs — muestra el MRTR (revisión 2026-07-28): la tool reservar_vaga\n// devuelve resultType \"input_required\"; el cliente le pregunta al usuario y repite la llamada.\n// Uso: node teste-confirmacao.mjs sim   (el \"usuario\" acepta)\n//      node teste-confirmacao.mjs nao   (el \"usuario\" rechaza)\nimport { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';\nimport { createMcpHandler } from '@modelcontextprotocol/server';\nimport { createServer } from './servidor.mjs';\n\nconst resposta = process.argv[2] === 'nao' ? 'nao' : 'sim';\nconst handler = createMcpHandler(createServer);\nconst ligar = async extra => {\n  const c = new Client({ name: 'teste-confirmacao', version: '1.0.0' },\n    { versionNegotiation: { mode: 'auto' }, capabilities: { elicitation: { form: {} } }, ...extra });\n  await c.connect(new StreamableHTTPClientTransport(new URL('http://teste.local/mcp'),\n    { fetch: (url, init) => handler.fetch(new Request(url, init)) }));\n  return c;\n};\nconst args = { turma_id: 'html-01', email: 'aluno@exemplo.com' };\n\n// 1.ª vuelta \"a mano\": lo que llega del servidor antes de que el usuario responda.\nconst cru = await ligar({ inputRequired: { autoFulfill: false } });\nconst volta1 = await cru.request({ method: 'tools/call', params: { name: 'reservar_vaga', arguments: args } }, { allowInputRequired: true });\nconsole.log(`1ª volta: resultType=${volta1.resultType} · pede: ${Object.keys(volta1.inputRequests ?? {}).join(', ')}`);\nawait cru.close();\n\n// Flujo normal: el SDK del cliente llama a tu handler de elicitation y repite la llamada solo.\nconst cliente = await ligar({});\ncliente.setRequestHandler('elicitation/create', async req => {\n  console.log(`[cliente] pergunta ao usuário: ${req.params.message} → ${resposta}`);\n  return resposta === 'sim' ? { action: 'accept', content: { confirmar: true } } : { action: 'decline' };\n});\nconst fim = await cliente.callTool({ name: 'reservar_vaga', arguments: args });\nconsole.log(`resultado: ${fim.content[0].text} · isError=${fim.isError === true}`);\nawait cliente.close();\nawait handler.close();\nprocess.exitCode = fim.isError ? 1 : 0;"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Sí (19/10/2026)",
+            "html": "<pre>1ª volta: resultType=input_required · pede: confirmar\n[cliente] pergunta ao usuário: Reservar 1 vaga em \"HTML semântico para agentes\" para aluno@exemplo.com? → sim\nresultado: reservado: html-01 para aluno@exemplo.com (restam 2) · isError=false\nsaída: 0</pre>"
+          },
+          {
+            "rot": "No (19/10/2026)",
+            "html": "<pre>1ª volta: resultType=input_required · pede: confirmar\n[cliente] pergunta ao usuário: Reservar 1 vaga em \"HTML semântico para agentes\" para aluno@exemplo.com? → nao\nresultado: reserva cancelada pelo usuário · isError=true\nsaída: 1</pre><p>Un rechazo se vuelve <code>isError</code> y salida 1: la plaza sigue ahí.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Error común: un cliente que no sabe preguntar",
+      "sub": "Sin capabilities.elicitation, el servidor no tiene cómo pedir la confirmación.",
+      "blocos": [
+        {
+          "rot": "Terminal · cliente sin capacidad",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nnode teste-sem-capacidade.mjs; echo \"saída: $?\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>recusado: -32021 Cannot request input 'confirmar' (elicitation/create): the request's client capabilities do not declare the re\nsaída: 1</pre><p>El SDK lo rechaza con <code>-32021</code> antes de enviar el pedido. En un host real, esto significa que ese cliente no puede usar la tool con confirmación: avisa en la descripción u ofrece otro camino.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "passos",
+      "titulo": "Tres cuidados",
+      "passos": [
+        {
+          "titulo": "La respuesta no es confiable",
+          "texto": [
+            "<code>inputResponses</code> viene del cliente. Valídala con esquema (<code>acceptedContent</code> lo hace) antes de actuar."
+          ]
+        },
+        {
+          "titulo": "Nada sobrevive entre vueltas",
+          "texto": [
+            "El servidor es sin estado: la 2.ª vuelta es otro pedido. Un flujo de varios pasos guarda lo que ya se comprobó en <code>requestState</code>, firmado con <code>createRequestStateCodec</code> (HMAC). Está firmado, no cifrado: nada de secretos adentro."
+          ]
+        },
+        {
+          "titulo": "Cliente antiguo",
+          "texto": [
+            "En una conexión 2025, el SDK del servidor convierte el <code>input_required</code> en un <code>elicitation/create</code> a la antigua (shim activado por defecto). El mismo handler sirve a las dos eras."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Práctica",
+      "sub": "El sí, el no y una confirmación tuya.",
+      "exercicios": [
+        {
+          "id": "e12",
+          "titulo": "E12 · Sí y no",
+          "min": "5 min",
+          "texto": "Corre los dos bloques.",
+          "pronto": "<code>node teste-confirmacao.mjs nao</code> → <code>reserva cancelada pelo usuário · isError=true</code> y <code>saída: 1</code>; con <code>sim</code> → <code>reservado: html-01</code> y <code>saída: 0</code>. En los dos, la primera línea es <code>resultType=input_required</code>."
+        },
+        {
+          "id": "e13",
+          "titulo": "E13 · Sin capacidad",
+          "min": "3 min",
+          "texto": "Corre el cliente sin capacidad.",
+          "pronto": "<code>recusado: -32021</code> y <code>saída: 1</code>."
+        },
+        {
+          "id": "e14",
+          "titulo": "E14 · Confirmación en tu tool",
+          "min": "20 min",
+          "texto": "En la tool con consecuencias de tu servicio (lección 3), pide confirmación con <code>inputRequired.elicit</code> y maneja el no. Copia el <code>teste-confirmacao.mjs</code> cambiando nombre y argumentos.",
+          "pronto": "tu prueba con <code>nao</code> termina en <code>saída: 1</code> sin cambiar nada; con <code>sim</code>, en <code>saída: 0</code>."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Prueba de la clase",
+      "perguntas": [
+        {
+          "p": "En la revisión 2026-07-28, ¿cómo le pide el servidor una confirmación al usuario?",
+          "opcoes": [
+            "Abrir una solicitud elicitation/create por cuenta propia",
+            "Devolver resultType input_required en la respuesta",
+            "Enviar un correo electrónico al usuario",
+            "Pedirle al modelo que pregunte en el chat"
+          ],
+          "certa": 1,
+          "explica": "El servidor ya no inicia solicitudes. Responde input_required y el cliente pregunta y repite la llamada (MRTR).",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "El usuario rechazó. ¿Qué hace el handler del kit?",
+          "opcoes": [
+            "Devuelve isError y no reserva",
+            "Reserva de todos modos y avisa",
+            "Pregunta de nuevo, indefinidamente, hasta que el usuario diga sí",
+            "Corta la conexión y obliga al cliente a empezar desde cero"
+          ],
+          "certa": 0,
+          "explica": "<code>inputResponse</code> muestra un action distinto de accept; el handler devuelve isError y la plaza sigue ahí.",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "Un flujo pide confirmación y después el scope. ¿Dónde se guarda que la confirmación ya ocurrió?",
+          "opcoes": [
+            "En una variable global del servidor",
+            "En el encabezado Mcp-Session-Id",
+            "En una cookie del navegador",
+            "En requestState firmado"
+          ],
+          "certa": 3,
+          "explica": "Sin estado, el servidor no recuerda la vuelta anterior. requestState vuelve idéntico desde el cliente; fírmalo con createRequestStateCodec y guarda solo lo que ya se probó.",
+          "ref": "passos"
+        },
+        {
+          "p": "El cliente no declaró capabilities.elicitation y llama a reservar_vaga. ¿Resultado?",
+          "opcoes": [
+            "La reserva sale sin confirmación",
+            "El servidor espera para siempre",
+            "El SDK la rechaza con -32021 antes de enviar",
+            "El cliente vuelve a la revisión 2025"
+          ],
+          "certa": 2,
+          "explica": "Cada solicitud embebida se compara con las capacidades del cliente. Sin elicitation, se rechaza con -32021.",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "En tres frases",
+      "itens": [
+        {
+          "t": "MRTR",
+          "texto": "input_required en la 1.ª vuelta; el cliente pregunta y repite."
+        },
+        {
+          "t": "Handler",
+          "texto": "Se ejecuta en las dos vueltas; actúa solo con el sí validado."
+        },
+        {
+          "t": "Estado",
+          "texto": "Entre vueltas, solo requestState firmado."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir más allá",
+      "links": [
+        {
+          "t": "SDK v2: input_required",
+          "href": "https://ts.sdk.modelcontextprotocol.io/v2/servers/input-required"
+        },
+        {
+          "t": "Changelog 2026-07-28 (MRTR y deprecaciones)",
+          "href": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
+        },
+        {
+          "t": "Curso 4: una acción con consecuencias pide a una persona (lado de la amenaza)",
+          "href": "https://inematds.github.io/formacao-webmcp-seguranca-v72/es/"
+        }
+      ]
+    }
+  ]
+}

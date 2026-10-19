@@ -1,0 +1,276 @@
+{
+  "slug": "autorizacao",
+  "num": 6,
+  "menu": "Token",
+  "titulo": "Autorización: OAuth con iss (RFC 9207), scope mínimo, secreto fuera del repo",
+  "titulo_curto": "Autorización y scope",
+  "minutos": 20,
+  "lead": "Un servidor HTTP en internet sin token es una tool abierta para cualquiera. En MCP tu servidor es un resource server de OAuth: no emite tokens, solo los verifica. En esta lección proteges el servidor del kit, ves el 401 que inicia el login del cliente y le das a cada token solo el scope que necesita.",
+  "objetivo": "proteger el servidor HTTP con token: 401 con metadatos, scope mínimo por tool y secreto fuera del repositorio.",
+  "competencias": [
+    "configurar-resource-server-oauth",
+    "aplicar-escopo-minimo-por-ferramenta",
+    "manter-segredo-fora-do-repositorio"
+  ],
+  "aprende": [
+    {
+      "icone": "cadeado",
+      "t": "Quién emite (servidor de autorización) y quién verifica (tu servidor MCP)"
+    },
+    {
+      "icone": "portao",
+      "t": "401 con WWW-Authenticate y el documento RFC 9728"
+    },
+    {
+      "icone": "escudo",
+      "t": "Scope del servidor completo y scope por tool (403 insufficient_scope)"
+    },
+    {
+      "icone": "chip",
+      "t": "iss (RFC 9207) y credencial atada al emisor: lo que corresponde al cliente"
+    }
+  ],
+  "hero_alt": "Llavero con dos llaves de colores distintos y una credencial en blanco sobre una mesa oscura, puerta de servidor al fondo.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Del 401 al token con el scope correcto",
+      "sub": "Haz clic en cada etapa.",
+      "nos": [
+        {
+          "icone": "enviar",
+          "titulo": "Sin token",
+          "sub": "1.ª solicitud",
+          "detalhe": "El cliente llama al servidor sin <code>Authorization</code>."
+        },
+        {
+          "icone": "portao",
+          "titulo": "401",
+          "sub": "WWW-Authenticate",
+          "detalhe": "El servidor responde 401 con <code>resource_metadata</code>: la URL del documento RFC 9728 del recurso."
+        },
+        {
+          "icone": "arquivo",
+          "titulo": "Metadatos",
+          "sub": "RFC 9728",
+          "detalhe": "El documento dice qué servidor de autorización emite tokens para este recurso y qué scopes existen."
+        },
+        {
+          "icone": "usuario",
+          "titulo": "Inicio de sesión",
+          "sub": "en el IdP",
+          "detalhe": "El cliente hace el OAuth con el servidor de autorización (tu IdP). Al volver, revisa el parámetro <code>iss</code> (RFC 9207) para asegurarse de que la respuesta vino del emisor correcto. Esto es trabajo del <b>cliente</b>."
+        },
+        {
+          "icone": "cadeado",
+          "titulo": "Token",
+          "sub": "verificado aquí",
+          "forte": true,
+          "detalhe": "Tu servidor verifica el token (firma, vigencia <code>exp</code>, audiencia <code>aud</code> = este servidor) y los scopes. Si falta un scope: 403 <code>insufficient_scope</code>."
+        }
+      ],
+      "legenda": "En el SDK v2 2.3.1, la validación de iss y la credencial atada al emisor son opciones del lado del cliente (finishAuth); el servidor es el resource server."
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "El servidor con compuerta",
+      "sub": "Ensayo: dos tokens vienen de variables de entorno. En producción, cambia el verificador por la comprobación del JWT de tu IdP.",
+      "blocos": [
+        {
+          "rot": "Archivo · kit/http-auth.mjs",
+          "icone": "arquivo",
+          "conteudo": "// http-auth.mjs — el mismo servidor por HTTP, ahora como \"resource server\" OAuth:\n// sin token → 401 con WWW-Authenticate; token sin el scope → 403 insufficient_scope.\n// ENSAYO: los tokens vienen de variables de entorno (nunca del repositorio). En producción quien\n// emite el token es tu servidor de autorización (IdP) y aquí verificas la firma\n// del JWT (o haces introspección RFC 7662), comprobando exp y aud.\nimport { createServer as criarHttp } from 'node:http';\nimport { timingSafeEqual } from 'node:crypto';\nimport {\n  createMcpHandler, requireBearerAuth, oauthMetadataResponse,\n  getOAuthProtectedResourceMetadataUrl, OAuthError, OAuthErrorCode\n} from '@modelcontextprotocol/server';\nimport { toNodeHandler, localhostHostValidation, localhostOriginValidation } from '@modelcontextprotocol/node';\nimport { createServer } from './servidor.mjs';\n\nconst PORTA = Number(process.env.PORTA ?? 3334);\nconst URL_MCP = new URL(`http://127.0.0.1:${PORTA}/mcp`);\nconst TOKENS = {\n  [process.env.TOKEN_LEITURA ?? '']: { clientId: 'leitor', scopes: ['turmas:ler'] },\n  [process.env.TOKEN_RESERVA ?? '']: { clientId: 'atendente', scopes: ['turmas:ler', 'turmas:reservar'] }\n};\nif (!process.env.TOKEN_LEITURA || !process.env.TOKEN_RESERVA) {\n  console.error('defina TOKEN_LEITURA e TOKEN_RESERVA no ambiente'); process.exit(2);\n}\nconst igual = (a, b) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));\n\nconst verifier = {\n  async verifyAccessToken(token) {\n    const chave = Object.keys(TOKENS).find(k => k && igual(k, token));\n    if (!chave) throw new OAuthError(OAuthErrorCode.InvalidToken, 'token desconhecido');\n    return { token, ...TOKENS[chave], expiresAt: Math.floor(Date.now() / 1000) + 3600, resource: URL_MCP };\n  }\n};\nconst portao = requireBearerAuth({\n  verifier,\n  requiredScopes: ['turmas:ler'],\n  resourceMetadataUrl: getOAuthProtectedResourceMetadataUrl(URL_MCP),\n  expectedResource: URL_MCP\n});\n// Documento RFC 9728 al que apunta el 401: le dice al cliente qué servidor de autorización usar.\nconst metadados = {\n  oauthMetadata: {\n    issuer: 'https://auth.exemplo.com',\n    authorization_endpoint: 'https://auth.exemplo.com/authorize',\n    token_endpoint: 'https://auth.exemplo.com/token',\n    response_types_supported: ['code'],\n    authorization_response_iss_parameter_supported: true\n  },\n  resourceServerUrl: URL_MCP,\n  scopesSupported: ['turmas:ler', 'turmas:reservar']\n};\n\nconst mcp = createMcpHandler(createServer);\nconst comPortao = {\n  async fetch(request) {\n    const doc = oauthMetadataResponse(request, metadados);\n    if (doc) return doc;\n    const auth = await portao(request);\n    if (auth instanceof Response) return auth; // 401 o 403 ya listo\n    return mcp.fetch(request, { authInfo: auth });\n  }\n};\nconst node = toNodeHandler(comPortao);\nconst hostOk = localhostHostValidation();\nconst origemOk = localhostOriginValidation();\nconst http = criarHttp((req, res) => {\n  if (!hostOk(req, res) || !origemOk(req, res)) return;\n  void node(req, res);\n});\nhttp.listen(PORTA, '127.0.0.1', () => console.error(`turmas (com token): ${URL_MCP}`));\nprocess.on('SIGTERM', async () => { await mcp.close(); http.close(); process.exit(0); });"
+        },
+        {
+          "rot": "Fragmento · scope por tool (kit/servidor.mjs)",
+          "icone": "arquivo",
+          "conteudo": "annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },\n// Con token (http-auth.mjs), exige el scope turmas:reservar; sin token (stdio), no se aplica.\nscopeChallenge: requireScopes('turmas:reservar')"
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Sin token, token de lectura, token de reserva",
+      "sub": "El bloque genera dos tokens aleatorios solo para esta ronda y llama al servidor tres veces.",
+      "blocos": [
+        {
+          "rot": "Terminal · tokens",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nexport TOKEN_LEITURA=$(openssl rand -hex 16) TOKEN_RESERVA=$(openssl rand -hex 16)\nnode http-auth.mjs & PID=$!; sleep 1\necho \"## sem token\"\ncurl -s -o /dev/null -D - -X POST http://127.0.0.1:3334/mcp \\\n  -H 'Content-Type: application/json' -d '{}' | grep -i -e '^HTTP' -e '^www-authenticate'\necho \"## metadados do recurso (RFC 9728)\"\ncurl -s http://127.0.0.1:3334/.well-known/oauth-protected-resource/mcp; echo\necho \"## token de leitura\"; TOKEN=$TOKEN_LEITURA node teste-auth.mjs\necho \"## token de reserva\"; TOKEN=$TOKEN_RESERVA node teste-auth.mjs\nkill $PID; wait $PID 2>/dev/null"
+        },
+        {
+          "rot": "Archivo · kit/teste-auth.mjs",
+          "icone": "arquivo",
+          "conteudo": "// teste-auth.mjs — llama al servidor con token (http-auth.mjs ya en ejecución) y muestra qué puede hacer cada token.\n// Uso: TOKEN=<token> node teste-auth.mjs\nimport { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';\n\nconst URL_MCP = new URL(`http://127.0.0.1:${process.env.PORTA ?? 3334}/mcp`);\nconst cliente = new Client({ name: 'teste-auth', version: '1.0.0' },\n  { versionNegotiation: { mode: 'auto' }, capabilities: { elicitation: { form: {} } } });\ncliente.setRequestHandler('elicitation/create', async () => ({ action: 'accept', content: { confirmar: true } }));\nawait cliente.connect(new StreamableHTTPClientTransport(URL_MCP,\n  { requestInit: { headers: { Authorization: `Bearer ${process.env.TOKEN}` } } }));\n\nconst busca = await cliente.callTool({ name: 'buscar_turmas', arguments: { termo: 'html' } });\nconsole.log(`buscar_turmas: ${busca.isError ? 'erro' : 'ok'}`);\ntry {\n  const r = await cliente.callTool({ name: 'reservar_vaga', arguments: { turma_id: 'html-01', email: 'aluno@exemplo.com' } });\n  console.log(`reservar_vaga: ${r.content[0].text}`);\n} catch (e) {\n  console.log(`reservar_vaga: recusado (${String(e.message).slice(0, 90)})`);\n}\nawait cliente.close();"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>turmas (com token): http://127.0.0.1:3334/mcp\n## sem token\nHTTP/1.1 401 Unauthorized\nwww-authenticate: Bearer error=\"invalid_token\", error_description=\"Missing Authorization header\", scope=\"turmas:ler\", resource_metadata=\"http://127.0.0.1:3334/.well-known/oauth-protected-resource/mcp\"\n## metadados do recurso (RFC 9728)\n{\"resource\":\"http://127.0.0.1:3334/mcp\",\"authorization_servers\":[\"https://auth.exemplo.com\"],\"scopes_supported\":[\"turmas:ler\",\"turmas:reservar\"]}\n## token de leitura\nbuscar_turmas: ok\nreservar_vaga: recusado (Insufficient scope: required \"turmas:reservar\")\n## token de reserva\nbuscar_turmas: ok\nreservar_vaga: reservado: html-01 para aluno@exemplo.com (restam 2)</pre><p>El token de lectura pasa la compuerta del servidor (scope <code>turmas:ler</code>) pero no reserva: le falta <code>turmas:reservar</code>. Es el scope mínimo funcionando por tool.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "passos",
+      "titulo": "Secreto fuera del repositorio",
+      "passos": [
+        {
+          "titulo": "Entorno, no código",
+          "texto": [
+            "El token, la clave de firma y el secreto del cliente vienen de una variable de entorno o de una bóveda. El kit se niega a arrancar sin <code>TOKEN_LEITURA</code> y <code>TOKEN_RESERVA</code>."
+          ]
+        },
+        {
+          "titulo": ".gitignore",
+          "texto": [
+            "Archivo <code>.env</code> en el <code>.gitignore</code> antes del primer commit. Antes de publicar, busca: <code>git grep -n -i \"token\\|secret\" -- ':!*.md'</code>."
+          ]
+        },
+        {
+          "titulo": "Audiencia",
+          "texto": [
+            "<code>expectedResource</code> hace que el servidor acepte solo tokens emitidos para él. Sin esto, pasaría un token de otro servicio del mismo IdP."
+          ]
+        },
+        {
+          "titulo": "Scope mínimo",
+          "texto": [
+            "Un scope por tipo de acción. Leer y reservar por separado; el agente que solo consulta recibe solo lectura."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Práctica",
+      "sub": "La compuerta del kit y la de tu servicio.",
+      "exercicios": [
+        {
+          "id": "e15",
+          "titulo": "E15 · Tres llamadas",
+          "min": "5 min",
+          "texto": "Ejecuta el bloque <b>tokens</b>.",
+          "pronto": "<code>HTTP/1.1 401 Unauthorized</code> sin token; con el de lectura, <code>reservar_vaga: recusado (Insufficient scope: required \"turmas:reservar\")</code>; con el de reserva, <code>reservar_vaga: reservado</code>."
+        },
+        {
+          "id": "e16",
+          "titulo": "E16 · Sin variable, sin servidor",
+          "min": "2 min",
+          "texto": "Ejecuta <code>node http-auth.mjs; echo \"saída: $?\"</code> en una terminal sin las variables.",
+          "pronto": "<code>defina TOKEN_LEITURA e TOKEN_RESERVA no ambiente</code> y <code>saída: 2</code>."
+        },
+        {
+          "id": "e17",
+          "titulo": "E17 · Scopes de tu servicio",
+          "min": "15 min",
+          "texto": "Lista en el <code>mapa-mcp.md</code> un scope por tool con consecuencia y pon <code>scopeChallenge: requireScopes(...)</code> en ellas.",
+          "pronto": "<code>grep -c \"requireScopes\" servidor.mjs</code> → igual al número de tools con consecuencia."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Prueba de la clase",
+      "perguntas": [
+        {
+          "p": "En el OAuth del MCP, ¿cuál es el papel de tu servidor MCP?",
+          "opcoes": [
+            "Servidor de autorización, que emite tokens",
+            "Cliente, que hace el login del usuario",
+            "Resource server, que verifica el token",
+            "Proxy entre el modelo y el IdP"
+          ],
+          "certa": 2,
+          "explica": "Quien emite es el servidor de autorización (IdP). El servidor MCP verifica firma, vigencia, audiencia y scopes.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "¿Qué trae el 401 del servidor para que el cliente empiece el login?",
+          "opcoes": [
+            "El token de acceso ya listo en el cuerpo de la respuesta, para reutilizarlo",
+            "El WWW-Authenticate con la URL de los metadatos RFC 9728",
+            "La contraseña del usuario cifrada para que el cliente la verifique de nuevo",
+            "Un enlace para descargar el SDK"
+          ],
+          "certa": 1,
+          "explica": "El <code>resource_metadata</code> apunta al documento que dice qué servidor de autorización usar y qué scopes existen.",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "¿Dónde ocurre la validación del parámetro iss (RFC 9207)?",
+          "opcoes": [
+            "En el cliente, al volver del login",
+            "En el servidor MCP, en cada llamada",
+            "En el modelo, al elegir la tool",
+            "En el archivo server.json"
+          ],
+          "certa": 0,
+          "explica": "iss protege al cliente de aceptar una respuesta de autorización de un emisor cambiado. En el SDK v2 es el finishAuth del cliente.",
+          "ref": "diagrama"
+        },
+        {
+          "p": "Un token con solo turmas:ler intenta reservar_vaga. ¿Respuesta?",
+          "opcoes": [
+            "Reserva, porque pasó la compuerta",
+            "401, token inválido",
+            "Pide confirmación al usuario",
+            "403 insufficient_scope"
+          ],
+          "certa": 3,
+          "explica": "El token es válido (pasa la compuerta del servidor), pero la tool exige turmas:reservar. El SDK responde 403 antes de ejecutar el handler.",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "En tres frases",
+      "itens": [
+        {
+          "t": "Papel",
+          "texto": "El servidor MCP verifica el token; quien lo emite es el IdP."
+        },
+        {
+          "t": "Scope",
+          "texto": "Mínimo, por tool, con 403 cuando falta."
+        },
+        {
+          "t": "Secreto",
+          "texto": "En el entorno, nunca en el repositorio; audiencia verificada."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir más allá",
+      "links": [
+        {
+          "t": "Especificación 2026-07-28: autorización",
+          "href": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+        },
+        {
+          "t": "SDK v2: exigir autorización en el servidor",
+          "href": "https://ts.sdk.modelcontextprotocol.io/v2/serving/authorization"
+        },
+        {
+          "t": "RFC 9728: metadatos del recurso protegido",
+          "href": "https://datatracker.ietf.org/doc/html/rfc9728"
+        },
+        {
+          "t": "RFC 9207: identificación del emisor en la respuesta de autorización",
+          "href": "https://datatracker.ietf.org/doc/html/rfc9207"
+        },
+        {
+          "t": "Curso 4: servidor MCP seguro (amenazas)",
+          "href": "https://inematds.github.io/formacao-webmcp-seguranca-v72/es/"
+        }
+      ]
+    }
+  ]
+}

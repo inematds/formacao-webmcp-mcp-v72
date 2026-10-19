@@ -192,9 +192,9 @@
         {
           "p": "O que o 401 do servidor traz para o cliente começar o login?",
           "opcoes": [
-            "O token já pronto no corpo",
+            "O token de acesso já pronto no corpo da resposta, para reusar",
             "O WWW-Authenticate com a URL dos metadados RFC 9728",
-            "A senha do usuário criptografada",
+            "A senha do usuário criptografada para o cliente conferir de novo",
             "Um link para baixar o SDK"
           ],
           "certa": 1,
