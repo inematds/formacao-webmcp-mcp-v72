@@ -80,7 +80,7 @@
         "abas": [
           {
             "rot": "Saída capturada (19/10/2026)",
-            "html": "<pre>(…) git clone omitido nesta captura: o repositório ainda não estava publicado\n\nadded 19 packages, and audited 20 packages in 5s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre>"
+            "html": "<pre>Cloning into '~/projetos/formacao-webmcp-mcp-v72'...\n\nadded 19 packages, and audited 20 packages in 3s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre>"
           }
         ]
       }

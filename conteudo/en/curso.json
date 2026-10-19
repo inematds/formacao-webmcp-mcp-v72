@@ -1,0 +1,203 @@
+{
+  "id": "formacao-webmcp-mcp-v72",
+  "lang": "en",
+  "url": "https://inematds.github.io/formacao-webmcp-mcp-v72/en/",
+  "nome": "An MCP Server for Your Service",
+  "sub": "WebMCP Track · course 1",
+  "volta": {
+    "t": "WebMCP Area",
+    "href": "https://eventos.inema.pro/webmcp/"
+  },
+  "lado_card": {
+    "rot": "WebMCP Track",
+    "t": "Course 1 of 6",
+    "texto": "The server side: official SDK v2 (2.3.1) on the 2026-07-28 revision. The kit runs at no cost and needs no key.",
+    "link": "Open the kit/ folder on GitHub",
+    "href": "https://github.com/inematds/formacao-webmcp-mcp-v72/tree/main/kit"
+  },
+  "rodape": "INEMA.CLUB · open and free content · INEMA Learning format v7.2 · <a href=\"https://eventos.inema.pro/webmcp/\">eventos.inema.pro/webmcp</a> · <a href=\"https://inema.club/\">inema.club</a> · kit tested on 10/19/2026 with the official MCP SDK 2.3.1",
+  "videos": {},
+  "inicio": {
+    "kicker": "WebMCP Track · course 1 of 6 · 8 lessons",
+    "titulo": "An MCP server for your service, tested and on the current revision",
+    "lead": "Tools the agent calls, with confirmation when there are consequences, a token when it's remote, and an automated test at the end. All on the 2026-07-28 revision of MCP, with the official SDK (v2, 2.3.1), in a kit that runs on your machine at no cost and with no key.",
+    "cta": "Start with lesson 1",
+    "cta2": {
+      "t": "See the track area",
+      "href": "https://eventos.inema.pro/webmcp/"
+    },
+    "capa_alt": "An MCP server for your service: a laptop with a terminal and a small server with a cable plugged in, on a dark desk.",
+    "numeros": [
+      {
+        "v": "8",
+        "t": "short lessons"
+      },
+      {
+        "v": "2026-07-28",
+        "t": "MCP revision taught"
+      },
+      {
+        "v": "2.3.1",
+        "t": "official SDK version in the kit"
+      },
+      {
+        "v": "0",
+        "t": "API keys and cost"
+      }
+    ],
+    "aulas_titulo": "The lessons",
+    "aulas_sub": "Each lesson ends with a command you run and an output you can check. The kit lives in the course's own repository.",
+    "blocos": [
+      {
+        "t": "Who it's for",
+        "itens": [
+          "Devs who run Node and a terminal and want their service to be used by agents (Claude Code, Codex, and other MCP clients).",
+          "Anyone with an MCP server built in 2025 with SSE, session, and initialize who needs to know what changed.",
+          "Anyone who prefers Python: the official Python SDK (mcp 2.3.0) also brings the new revision; the concepts apply just the same."
+        ]
+      },
+      {
+        "t": "What you'll build",
+        "itens": [
+          "A server with a read-only tool, a tool with consequences, a resource, and a prompt.",
+          "The same code over stdio and over stateless Streamable HTTP, with a Host and Origin guard.",
+          "User confirmation mid-call (MRTR) and a token with minimum scope per tool.",
+          "An MCP Apps interface, the test suite, and the server hooked up to Claude Code and Codex."
+        ]
+      },
+      {
+        "t": "Where this course fits in the WebMCP Track",
+        "itens": [
+          "Course 0 shows how agents use a site; this one is the server side (backend).",
+          "Course 2 brings tools into the page with WebMCP; course 4 goes deeper into threats.",
+          "Autonomous-loop threats and in-depth evals belong to the LOOP-R Engenharia Track."
+        ]
+      }
+    ]
+  },
+  "ui": {
+    "pular": "Skip to content",
+    "aulas": "Lessons",
+    "concluido": "completed",
+    "aula": "Lesson",
+    "nesta_aula": "In this lesson, you'll learn:",
+    "objetivo": "Goal:",
+    "proxima_aula": "Next lesson",
+    "aula_anterior": "Previous lesson",
+    "voltar_inicio": "Back to the start of the course",
+    "marcar_concluida": "Mark lesson as completed",
+    "dg_dica": "Click each block in the diagram to see what it does.",
+    "copiar": "Copy",
+    "copiado": "Copied",
+    "selo_simulacao": "Simulation: illustrative example",
+    "selo_real": "Example from the repository",
+    "pronto_quando": "Done when:",
+    "fiz": "I did this exercise",
+    "video_pagina": "Video page with script",
+    "pergunta": "Question",
+    "de": "of",
+    "cert_tag": "skill",
+    "correto": "Correct",
+    "errado": "Not this one",
+    "quiz_aguarda": "Pick an option. The explanation appears after you try.",
+    "proxima_pergunta": "Next question",
+    "quiz_ver": "See result",
+    "quiz_fim": "Quiz complete",
+    "quiz_total": "You got {a} of {n} right. Get them all right and the lesson is marked as complete.",
+    "aparencia": "Appearance",
+    "tamanho_texto": "Text size",
+    "tema": "Theme",
+    "tema_escuro": "Dark",
+    "tema_papel": "Light paper",
+    "role_dica": "Scroll the page: each step below lights up its part of the diagram.",
+    "pre_requisito": "requires",
+    "ver_aula": "View the lesson",
+    "mapa_dica": "Click an exercise to see what to do and the \"done when\".",
+    "etapas": "Steps",
+    "exercicios": "exercises",
+    "rever": "Review:",
+    "revisar_erradas": "Review the wrong ones",
+    "refazer": "Retake the quiz",
+    "h_semana": "h per week",
+    "data_inicio": "Start date",
+    "ritmo": "Time available",
+    "gerar_plano": "Generate my plan",
+    "baixar_md": "Download plano.md",
+    "baixar_ics": "Download to calendar (.ics)",
+    "ind_estudo": "Study (lessons)",
+    "ind_pratica": "Declared practice",
+    "ind_nota": "Practice = exercises you marked as done. Proof comes in the certification exam.",
+    "estudo": {
+      "titulo": "Your study",
+      "continuar": "Pick up where I left off",
+      "comecar": "Start with lesson 1",
+      "cta_continuar": "Continue lesson {n}",
+      "hoje": "today",
+      "ontem": "yesterday",
+      "ha_dias": "{n} days ago",
+      "desempenho": "Test performance",
+      "notas": "My notes",
+      "dados": "Copy my data",
+      "sem_testes": "No tests taken yet. The test is at the end of each lesson.",
+      "nao_fez": "test not taken yet",
+      "ultimo": "Latest",
+      "melhor": "Best",
+      "tentativas": "attempts",
+      "tentativa": "attempt",
+      "tudo_certo": "You got everything right on the latest test.",
+      "rever": "To review",
+      "resposta": "Correct answer:",
+      "ir_teste": "Retake the quiz",
+      "sem_notas": "No notes yet. In the lesson, select a passage of text and tap Highlight or Note.",
+      "so_marcado": "(highlight only)",
+      "marcar": "Highlight",
+      "anotar": "Note",
+      "salvar": "Save",
+      "apagar": "Remove highlight",
+      "fechar": "Close",
+      "nota_ph": "Write your note about this passage…",
+      "um_bloco": "Highlight within a single paragraph only.",
+      "nao_marca": "This passage can't be highlighted.",
+      "dados_exp": "Your progress, your notes, and your test scores stay only in this browser. Download a copy (.json) to keep it or to continue on another computer or browser; there, load the copy. Loading adds to what's already there and doesn't delete anything.",
+      "exportar": "Download copy",
+      "importar": "Load copy",
+      "import_ok": "Copy loaded ({n} items). Refreshing the page…",
+      "import_erro": "File not recognized. Nothing was changed.",
+      "import_outro": "This copy is from a different course. Nothing was changed.",
+      "export_ok": "Copy downloaded."
+    },
+    "conv_dica": "Choose your answer. The feedback appears right after, and the conversation continues based on your choice.",
+    "conv_voce": "You",
+    "conv_escolha": "Your answer",
+    "conv_boa": "Good choice",
+    "conv_meio": "Could be better",
+    "conv_ruim": "Weak choice",
+    "conv_fim": "End of the conversation",
+    "conv_placar": "You scored {p} of {m} possible points.",
+    "conv_licao": "Lesson:",
+    "conv_recomecar": "Restart the conversation",
+    "conv_feita": "Your best score: {p} of {m} points.",
+    "comecar": "Start the lesson",
+    "nesta_vai": "In this lesson you will",
+    "trocar_tema": "Switch light/dark theme",
+    "conf_vazio": "Paste the text or load the file before checking.",
+    "conf_falta": "Not yet. What's missing:",
+    "conf_campo": "Missing the {c}: line with the description (at least {x} letters).",
+    "conf_planos": "I found {n} numbered shots; the request is for {x} to {y}. Start each shot with its number (1 | ...).",
+    "conf_no_plano": "Shot {i}: missing {g}.",
+    "conf_um_so": "Shot {i}: {n} choices of {g}; keep just one.",
+    "conf_variedade": "Only {n} different type(s) of {g} across the shots; vary them to at least {x}.",
+    "conf_sem_duracao": "Shot {i}: missing the duration in seconds (e.g., 4 s).",
+    "conf_duracao": "The shots add up to {s} s; the request is for {x} to {y} s.",
+    "conf_termo": "Missing a mention of {g}.",
+    "conf_mais": "… and {n} more.",
+    "conf_rot": "Paste your file here (or upload the .txt):",
+    "conf_conferir": "Check",
+    "conf_exemplo": "Example that passes",
+    "conf_errado": "Example with an error",
+    "conf_carregar": "Upload .txt",
+    "conf_baixar": "Download the file",
+    "conf_limpar": "Clear"
+  },
+  "icone": "camadas"
+}

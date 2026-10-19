@@ -1,0 +1,296 @@
+{
+  "slug": "primeiro-servidor",
+  "num": 2,
+  "menu": "Stdio",
+  "titulo": "First stdio server with the official SDK, tested in the Inspector",
+  "titulo_curto": "First stdio server",
+  "minutos": 20,
+  "lead": "The simplest way to connect a service to an agent is stdio: the client starts your program and talks to it over stdin and stdout. In this lesson you install the kit with pinned versions, read the class server, and call the tool two ways: with a test client and with the MCP Inspector in command-line mode.",
+  "objetivo": "start an MCP server over stdio with the official v2 SDK and call it with a test client and with the Inspector, no host at all.",
+  "competencias": [
+    "instalar-sdk-com-versao-fixa",
+    "escrever-servidor-stdio",
+    "testar-com-inspector-cli"
+  ],
+  "aprende": [
+    {
+      "icone": "terminal",
+      "t": "Install the kit with npm ci and check the versions"
+    },
+    {
+      "icone": "arquivo",
+      "t": "The createServer factory and the SDK v2 serveStdio"
+    },
+    {
+      "icone": "lupa",
+      "t": "Call the tool through Inspector 2.11.0 in --cli mode"
+    },
+    {
+      "icone": "alvo",
+      "t": "Why every log goes to stderr"
+    }
+  ],
+  "hero_alt": "Unbranded mini computer with a lit white LED, connected by cable to a blurred laptop showing a terminal.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "From npm ci to the first call",
+      "sub": "Click each step.",
+      "nos": [
+        {
+          "icone": "baixar",
+          "titulo": "Kit",
+          "sub": "npm ci",
+          "detalhe": "The kit's <code>package-lock.json</code> pins the versions: <code>@modelcontextprotocol/server</code> and <code>client</code> 2.3.1, <code>node</code> 2.1.1, <code>ext-apps</code> 2.0.3, <code>zod</code> 4.6.7. <code>npm ci</code> installs exactly those."
+        },
+        {
+          "icone": "arquivo",
+          "titulo": "Factory",
+          "sub": "createServer",
+          "detalhe": "A function that builds an <code>McpServer</code> and registers tools, a resource, and a prompt. The SDK calls the factory when it needs an instance."
+        },
+        {
+          "icone": "terminal",
+          "titulo": "stdio",
+          "sub": "serveStdio",
+          "forte": true,
+          "detalhe": "<code>serveStdio(createServer)</code> reads requests from stdin and writes responses to stdout. The process waits until a client speaks."
+        },
+        {
+          "icone": "lupa",
+          "titulo": "Client",
+          "sub": "test or Inspector",
+          "detalhe": "Whoever starts the process. In the kit: <code>teste-stdio.mjs</code> (an SDK client) and the MCP Inspector in <code>--cli</code> mode. Later, Claude Code and Codex play the same role (lesson 8)."
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Install the kit",
+      "sub": "Once. You need Node 20 or newer and git. The blocks in the next lessons start from this folder.",
+      "blocos": [
+        {
+          "rot": "Terminal · install",
+          "icone": "terminal",
+          "conteudo": "git clone https://github.com/inematds/formacao-webmcp-mcp-v72 ~/projetos/formacao-webmcp-mcp-v72\ncd ~/projetos/formacao-webmcp-mcp-v72/kit\nnpm ci                      # installs the versions from package-lock.json\nnpm ls --depth=0"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>(…) git clone omitido nesta captura: o repositório ainda não estava publicado\n\nadded 19 packages, and audited 20 packages in 5s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "The classes server",
+      "sub": "Read before you run. The two tools, the resource, and the prompt are in the same factory; stdio is just the front door.",
+      "blocos": [
+        {
+          "rot": "File · kit/servidor.mjs",
+          "icone": "arquivo",
+          "conteudo": "// servidor.mjs — the course's example MCP server (a fictional class service).\n// Official SDK v2 (@modelcontextprotocol/server 2.3.1, from 05/10/2026), which serves the\n// 2026-07-28 MCP revision and, with the same code, clients on the 2025-11-25 revision.\n// It calls no model or paid service: the data stays in the process memory.\nimport { McpServer, acceptedContent, inputRequired, inputResponse, requireScopes } from '@modelcontextprotocol/server';\nimport * as z from 'zod/v4';\n\nexport const TURMAS = [\n  { id: 'html-01', titulo: 'HTML semântico para agentes', vagas: 3 },\n  { id: 'mcp-01', titulo: 'Servidor MCP em uma tarde', vagas: 1 },\n  { id: 'mcp-02', titulo: 'MCP com autorização', vagas: 0 }\n];\n\nconst Turma = z.object({ id: z.string(), titulo: z.string(), vagas: z.int() });\nconst Confirma = z.object({ confirmar: z.boolean().meta({ title: 'Confirmar a reserva' }) });\n\nexport function createServer() {\n  const server = new McpServer({ name: 'turmas', version: '1.0.0' });\n\n  // 1) Read-only tool: the client can approve it without asking.\n  server.registerTool(\n    'buscar_turmas',\n    {\n      title: 'Buscar turmas',\n      description: 'Lista turmas cujo título contém o termo. Só leitura: não reserva nada.',\n      inputSchema: z.object({\n        termo: z.string().min(2).describe('Parte do título, ex.: \"mcp\"'),\n        limite: z.int().min(1).max(20).optional().describe('Máximo de turmas (padrão 5)')\n      }),\n      outputSchema: z.object({ turmas: z.array(Turma) }),\n      annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false }\n    },\n    async ({ termo, limite }) => {\n      const t = termo.toLowerCase();\n      const turmas = TURMAS.filter(x => x.titulo.toLowerCase().includes(t)).slice(0, limite ?? 5);\n      return {\n        content: [{ type: 'text', text: turmas.map(x => `${x.id} · ${x.titulo} · ${x.vagas} vagas`).join('\\n') || 'nenhuma turma' }],\n        structuredContent: { turmas }\n      };\n    }\n  );\n\n  // 2) Tool with consequences: asks the user for confirmation mid-call (MRTR).\n  server.registerTool(\n    'reservar_vaga',\n    {\n      title: 'Reservar vaga',\n      description: 'Reserva uma vaga na turma para o e-mail informado. Tem consequência: pede confirmação antes.',\n      inputSchema: z.object({\n        turma_id: z.string().describe('Id da turma, ex.: \"mcp-01\"'),\n        email: z.email().describe('E-mail de quem vai fazer a turma')\n      }),\n      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },\n      // With a token (http-auth.mjs), it requires the turmas:reservar scope; without a token (stdio), it does not apply.\n      scopeChallenge: requireScopes('turmas:reservar')\n    },\n    async ({ turma_id, email }, ctx) => {\n      const turma = TURMAS.find(x => x.id === turma_id);\n      if (!turma) return { content: [{ type: 'text', text: `turma ${turma_id} não existe` }], isError: true };\n      if (turma.vagas < 1) return { content: [{ type: 'text', text: `turma ${turma_id} sem vagas` }], isError: true };\n\n      const resposta = inputResponse(ctx.mcpReq.inputResponses, 'confirmar');\n      if (resposta.kind === 'elicit' && resposta.action !== 'accept') {\n        return { content: [{ type: 'text', text: 'reserva cancelada pelo usuário' }], isError: true };\n      }\n      const ok = acceptedContent(ctx.mcpReq.inputResponses, 'confirmar', Confirma);\n      if (ok?.confirmar !== true) {\n        return inputRequired({\n          inputRequests: {\n            confirmar: inputRequired.elicit({ message: `Reservar 1 vaga em \"${turma.titulo}\" para ${email}?`, requestedSchema: Confirma })\n          }\n        });\n      }\n      turma.vagas -= 1;\n      return { content: [{ type: 'text', text: `reservado: ${turma_id} para ${email} (restam ${turma.vagas})` }] };\n    }\n  );\n\n  // 3) Resource: data the client reads whenever it wants (not an action).\n  server.registerResource(\n    'catalogo',\n    'turmas://catalogo',\n    { title: 'Catálogo de turmas', description: 'Todas as turmas em JSON', mimeType: 'application/json' },\n    async uri => ({ contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(TURMAS) }] })\n  );\n\n  // 4) Prompt: a request template the user picks in the client.\n  server.registerPrompt(\n    'convite_turma',\n    {\n      title: 'Convite para a turma',\n      description: 'Monta o pedido de um convite curto para uma turma',\n      argsSchema: z.object({ turma_id: z.string() })\n    },\n    async ({ turma_id }) => ({\n      messages: [{ role: 'user', content: { type: 'text', text: `Escreva um convite de 3 linhas para a turma ${turma_id}, usando o recurso turmas://catalogo.` } }]\n    })\n  );\n\n  return server;\n}"
+        },
+        {
+          "rot": "File · kit/stdio.mjs",
+          "icone": "arquivo",
+          "conteudo": "// stdio.mjs — serves the classes server over stdio (the client starts this process).\n// stdout is the protocol channel: every log goes to stderr (console.error).\nimport { serveStdio } from '@modelcontextprotocol/server/stdio';\nimport { createServer } from './servidor.mjs';\n\nserveStdio(createServer);\nconsole.error('turmas: servidor MCP no stdio');"
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Call it through the test client",
+      "sub": "The test plays the role of Claude Code: it starts node stdio.mjs, negotiates the revision, and calls buscar_turmas.",
+      "blocos": [
+        {
+          "rot": "Terminal · stdio test",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nnode teste-stdio.mjs; echo \"saída: $?\""
+        },
+        {
+          "rot": "File · kit/teste-stdio.mjs",
+          "icone": "arquivo",
+          "conteudo": "// Usage: node teste-stdio.mjs [server file, default stdio.mjs]\n// teste-stdio.mjs — plays the role of the client (Claude Code, Codex…): starts \"node stdio.mjs\",\n// negotiates the protocol revision, and calls a tool through the process's stdin/stdout.\nimport { Client } from '@modelcontextprotocol/client';\nimport { StdioClientTransport } from '@modelcontextprotocol/client/stdio';\n\nconst cliente = new Client({ name: 'teste-stdio', version: '1.0.0' }, { versionNegotiation: { mode: 'auto' } });\nawait cliente.connect(new StdioClientTransport({ command: 'node', args: [process.argv[2] ?? 'stdio.mjs'] }));\nconst { tools } = await cliente.listTools();\nconst r = await cliente.callTool({ name: 'buscar_turmas', arguments: { termo: 'mcp' } });\nconsole.log(`era: ${cliente.getProtocolEra()} · ferramentas: ${tools.map(t => t.name).join(', ')}`);\nconsole.log(`buscar_turmas → ${r.structuredContent.turmas.length} turmas`);\nawait cliente.close();"
+        },
+        {
+          "rot": "Terminal · common error (without npm ci)",
+          "icone": "terminal",
+          "conteudo": "cd \"$(mktemp -d)\" && cp ~/projetos/formacao-webmcp-mcp-v72/kit/*.mjs ~/projetos/formacao-webmcp-mcp-v72/kit/package.json .\nnode teste-stdio.mjs 2>&1 | grep -m1 -o \"ERR_MODULE_NOT_FOUND\\|Cannot find package '[^']*'\"; echo \"saída: ${PIPESTATUS[0]}\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>turmas: servidor MCP no stdio\nera: modern · ferramentas: buscar_turmas, reservar_vaga\nbuscar_turmas → 2 turmas\nsaída: 0</pre><p>The first line came from the server's stderr; the rest came from the client.</p>"
+          },
+          {
+            "rot": "Common error: you forgot npm ci",
+            "html": "<pre>ERR_MODULE_NOT_FOUND\nsaída: 1</pre><p>Captured with the \"common error\" block above, which copies the files to an empty folder, without <code>node_modules</code>. Fix: run <code>npm ci</code> inside <code>kit/</code>.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Call it through the MCP Inspector, without opening a browser",
+      "sub": "Inspector 2.11.0 has a command-line mode. The version is pinned in npx so the result matches the capture.",
+      "blocos": [
+        {
+          "rot": "Terminal · Inspector --cli",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nnpx -y @modelcontextprotocol/inspector@2.11.0 --cli node stdio.mjs \\\n  --method tools/call --tool-name buscar_turmas --tool-arg termo=html\necho \"saída: $?\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>turmas: servidor MCP no stdio\n{\n  \"content\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"html-01 · HTML semântico para agentes · 3 vagas\"\n    }\n  ],\n  \"structuredContent\": {\n    \"turmas\": [\n      {\n        \"id\": \"html-01\",\n        \"titulo\": \"HTML semântico para agentes\",\n        \"vagas\": 3\n      }\n    ]\n  }\n}\nsaída: 0</pre><p>Without <code>--cli</code>, the same command opens the Inspector web interface, where you connect and test the tools by clicking.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "texto",
+      "titulo": "stdout belongs to the protocol",
+      "paragrafos": [
+        "On stdio, every line of stdout is read as a JSON-RPC message. That's why the kit logs with <code>console.error</code> (stderr). The SDK documentation warns that a <code>console.log</code> corrupts the channel and the host may drop the connection.",
+        "In our test on 10/19/2026, the SDK 2.3.1 client and Inspector 2.11.0 skipped a stray line and kept going. Don't count on that: another host may not be so forgiving. Always log to stderr.",
+        "Prefer Python? The official <code>mcp</code> 2.3.0 SDK (PyPI) also ships the 2026-07-28 revision (<code>server/discover</code> and <code>InputRequiredResult</code> in the package code). This course stays in Node; the concepts apply the same way."
+      ]
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Practice",
+      "sub": "Rehearsal on the kit and one change of your own.",
+      "exercicios": [
+        {
+          "id": "e3",
+          "titulo": "E3 · Kit installed",
+          "min": "5 min",
+          "texto": "Run the <b>install</b> block.",
+          "pronto": "<code>npm ls --depth=0</code> → shows <code>@modelcontextprotocol/server@2.3.1</code> and <code>@modelcontextprotocol/client@2.3.1</code>."
+        },
+        {
+          "id": "e4",
+          "titulo": "E4 · First call",
+          "min": "5 min",
+          "texto": "Run the <b>stdio test</b> and the <b>Inspector --cli</b>.",
+          "pronto": "<code>node teste-stdio.mjs</code> → <code>era: modern · ferramentas: buscar_turmas, reservar_vaga</code> and <code>saída: 0</code>; the Inspector returns a JSON with <code>\"structuredContent\"</code>."
+        },
+        {
+          "id": "e5",
+          "titulo": "E5 · A class of your own",
+          "min": "10 min",
+          "texto": "Add a class to <code>TURMAS</code> in <code>servidor.mjs</code> with the word mcp in the title and run the test again.",
+          "pronto": "<code>node teste-stdio.mjs</code> → <code>buscar_turmas → 3 turmas</code>."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Lesson quiz",
+      "perguntas": [
+        {
+          "p": "On the stdio transport, who starts the server process?",
+          "opcoes": [
+            "The server itself, as a system service",
+            "npm, at npm ci time",
+            "The client, which talks over stdin and stdout",
+            "The Inspector, always, even in Claude Code"
+          ],
+          "certa": 2,
+          "explica": "On stdio, the client (Claude Code, Codex, Inspector, the kit's test) starts the process and owns its lifetime.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "Why does the kit use npm ci instead of npm install?",
+          "opcoes": [
+            "It installs exactly the versions in package-lock.json",
+            "It's faster in every case, no difference",
+            "It downloads the newest SDK version",
+            "It makes package.json unnecessary"
+          ],
+          "certa": 0,
+          "explica": "The course was tested with 2.3.1; <code>npm ci</code> guarantees those versions. <code>npm install</code> may move up to a version that behaves differently.",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "Where should the stdio server write its logs?",
+          "opcoes": [
+            "To stdout, alongside the responses",
+            "To a file inside node_modules",
+            "Nowhere: stdio doesn't accept logs",
+            "To stderr, with console.error"
+          ],
+          "certa": 3,
+          "explica": "stdout is the protocol channel. Even if one client tolerates a stray line, another may drop the connection.",
+          "ref": "texto",
+          "cert": true
+        },
+        {
+          "p": "The test shows <code>era: modern</code>. What does that guarantee?",
+          "opcoes": [
+            "That the server only accepts new clients",
+            "That client and server agreed on the 2026-07-28 revision",
+            "That Node is on the newest version",
+            "That the server uses SSE"
+          ],
+          "certa": 1,
+          "explica": "The client asked for <code>mode: 'auto'</code> and the server offered 2026-07-28. An older client is still served by the same server (lesson 4).",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "In three sentences",
+      "itens": [
+        {
+          "t": "Version",
+          "texto": "npm ci with the kit's lock: SDK v2 2.3.1."
+        },
+        {
+          "t": "Server",
+          "texto": "One createServer factory; serveStdio is the door."
+        },
+        {
+          "t": "Test",
+          "texto": "SDK client and Inspector --cli, no host and no cost."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Going further",
+      "links": [
+        {
+          "t": "SDK v2: build your first server",
+          "href": "https://ts.sdk.modelcontextprotocol.io/v2/get-started/first-server"
+        },
+        {
+          "t": "SDK v2: serve over stdio",
+          "href": "https://ts.sdk.modelcontextprotocol.io/v2/serving/stdio"
+        },
+        {
+          "t": "MCP Inspector (repository)",
+          "href": "https://github.com/modelcontextprotocol/inspector"
+        },
+        {
+          "t": "Official Python SDK",
+          "href": "https://github.com/modelcontextprotocol/python-sdk"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+{
+  "slug": "mcp-apps",
+  "num": 7,
+  "menu": "MCP Apps",
+  "titulo": "MCP Apps: interface dentro do cliente (extensão oficial)",
+  "titulo_curto": "MCP Apps",
+  "minutos": 15,
+  "lead": "Às vezes texto não basta: uma lista com cores, um gráfico, um formulário. MCP Apps é a extensão oficial que liga uma ferramenta a uma página HTML que o cliente desenha num iframe isolado. Nesta aula você liga um painel à ferramenta ver_turmas e confere o vínculo sem precisar abrir um cliente.",
+  "objetivo": "ligar uma interface HTML a uma ferramenta com MCP Apps e conferir o vínculo pelo Inspector, sem abrir nenhum cliente.",
+  "competencias": [
+    "registrar-ferramenta-com-interface",
+    "servir-recurso-ui",
+    "conferir-app-pelo-inspector"
+  ],
+  "aprende": [
+    {
+      "icone": "camadas",
+      "t": "Ferramenta + recurso ui:// + iframe isolado no cliente"
+    },
+    {
+      "icone": "arquivo",
+      "t": "registerAppTool e registerAppResource do pacote ext-apps 2.0.3"
+    },
+    {
+      "icone": "lupa",
+      "t": "Conferir com o Inspector --app-info"
+    },
+    {
+      "icone": "escudo",
+      "t": "Cliente sem suporte recebe o texto; CSP restringe a rede da página"
+    }
+  ],
+  "hero_alt": "Monitor escuro com janela de conversa e um pequeno painel com lista e barras dentro, ligado a um mini servidor.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Como o painel chega à conversa",
+      "sub": "Click each step.",
+      "nos": [
+        {
+          "icone": "chip",
+          "titulo": "Tool",
+          "sub": "_meta.ui",
+          "detalhe": "<code>ver_turmas</code> declara <code>_meta: { ui: { resourceUri: 'ui://turmas/painel.html' } }</code>. O resto é ferramenta comum."
+        },
+        {
+          "icone": "arquivo",
+          "titulo": "Resource",
+          "sub": "ui://",
+          "forte": true,
+          "detalhe": "O HTML do painel é servido como recurso com o tipo <code>text/html;profile=mcp-app</code>."
+        },
+        {
+          "icone": "robo",
+          "titulo": "Chamada",
+          "sub": "o modelo escolhe",
+          "detalhe": "O modelo chama a ferramenta como qualquer outra. O cliente vê o <code>resourceUri</code> e busca o HTML."
+        },
+        {
+          "icone": "camadas",
+          "titulo": "Iframe",
+          "sub": "isolado",
+          "detalhe": "O cliente desenha o HTML num iframe com sandbox e entrega o resultado da ferramenta por mensagens. Rede externa só com <code>csp</code> declarado."
+        }
+      ],
+      "legenda": "MCP Apps é a primeira extensão oficial do MCP (io.modelcontextprotocol/ui), anunciada em 26/01/2026 com suporte no Claude (web e desktop), Goose e VS Code Insiders."
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "O servidor com painel",
+      "sub": "app.mjs reaproveita o servidor de turmas e acrescenta uma ferramenta com interface.",
+      "blocos": [
+        {
+          "rot": "Arquivo · kit/app.mjs",
+          "icone": "arquivo",
+          "conteudo": "// app.mjs — o servidor de turmas + um MCP App (extensão oficial io.modelcontextprotocol/ui):\n// a ferramenta ver_turmas aponta para a interface ui://turmas/painel.html, que o cliente\n// desenha num iframe isolado. Cliente sem suporte a MCP Apps recebe o texto normal.\nimport { readFileSync } from 'node:fs';\nimport { createRequire } from 'node:module';\nimport { serveStdio } from '@modelcontextprotocol/server/stdio';\nimport { registerAppTool, registerAppResource, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server';\nimport * as z from 'zod/v4';\nimport { createServer, TURMAS } from './servidor.mjs';\n\nconst URI = 'ui://turmas/painel.html';\n// A classe App vem pronta no pacote (app-with-deps.js); a View é um HTML só, sem build.\n// Para caber num <script> só, trocamos o \"export {… X as App …}\" final por \"const App = X;\".\nconst bruto = readFileSync(createRequire(import.meta.url).resolve('@modelcontextprotocol/ext-apps/app-with-deps'), 'utf8');\nconst exporta = bruto.match(/export\\s*\\{([^}]*)\\};?\\s*$/);\nconst nomeApp = exporta[1].match(/(\\w+)\\s+as\\s+App\\b/)[1];\nconst appJs = bruto.slice(0, exporta.index) + `\\nconst App = ${nomeApp};\\n`;\nconst html = readFileSync(new URL('./painel.html', import.meta.url), 'utf8').replace('/*APP_JS*/', () => appJs); // função: o bundle tem \"$&\" que o replace leria como padrão\n\nexport function createServerComApp() {\n  const server = createServer();\n  registerAppTool(server, 'ver_turmas', {\n    title: 'Ver turmas (painel)',\n    description: 'Mostra as turmas com vagas num painel. Só leitura.',\n    inputSchema: z.object({ termo: z.string().min(2) }),\n    outputSchema: z.object({ turmas: z.array(z.object({ id: z.string(), titulo: z.string(), vagas: z.int() })) }),\n    annotations: { readOnlyHint: true },\n    _meta: { ui: { resourceUri: URI } }\n  }, async ({ termo }) => {\n    const turmas = TURMAS.filter(t => t.titulo.toLowerCase().includes(termo.toLowerCase()));\n    return { content: [{ type: 'text', text: `${turmas.length} turmas` }], structuredContent: { turmas } };\n  });\n  registerAppResource(server, 'Painel de turmas', URI, { description: 'Lista visual das turmas' },\n    async () => ({ contents: [{ uri: URI, mimeType: RESOURCE_MIME_TYPE, text: html }] }));\n  return server;\n}\n\nif (import.meta.url === `file://${process.argv[1]}`) {\n  serveStdio(createServerComApp);\n  console.error('turmas + MCP App: servidor no stdio');\n}"
+        },
+        {
+          "rot": "Arquivo · kit/painel.html",
+          "icone": "arquivo",
+          "conteudo": "<!doctype html>\n<html lang=\"pt-BR\">\n<head>\n<meta charset=\"utf-8\">\n<title>Turmas</title>\n<style>\n  body { font: 15px/1.4 system-ui, sans-serif; margin: 12px; color: #111; }\n  li { margin: 4px 0; }\n  .zero { color: #a00; }\n</style>\n</head>\n<body>\n<h3>Turmas encontradas</h3>\n<ul id=\"lista\"><li>aguardando o resultado da ferramenta…</li></ul>\n<script type=\"module\">\n  /*APP_JS*/\n  // A View conversa com o cliente (host) por postMessage; a classe App cuida do aperto de mão.\n  const app = new App({ name: 'painel-turmas', version: '1.0.0' }, {});\n  app.ontoolresult = ({ structuredContent }) => {\n    const lista = document.getElementById('lista');\n    lista.replaceChildren(...(structuredContent?.turmas ?? []).map(t => {\n      const li = document.createElement('li');\n      li.textContent = `${t.titulo} — ${t.vagas} vagas`;\n      if (t.vagas === 0) li.className = 'zero';\n      return li;\n    }));\n  };\n  await app.connect();\n</script>\n</body>\n</html>"
+        }
+      ]
+    },
+    {
+      "tipo": "texto",
+      "titulo": "Um atalho de demonstração, dito como atalho",
+      "paragrafos": [
+        "Para a página ficar num HTML só, sem build, o kit embute o <code>app-with-deps.js</code> do pacote e troca o <code>export</code> final por uma constante. Funciona com o <code>ext-apps</code> 2.0.3 que o kit fixa; numa versão nova pode quebrar.",
+        "Em projeto de verdade, siga o quickstart oficial do MCP Apps (página com bundler, ou os modelos prontos do repositório <code>ext-apps</code>)."
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Confira o vínculo pelo Inspector",
+      "sub": "--app-info lê o metadado de interface de cada ferramenta sem chamar nenhuma.",
+      "blocos": [
+        {
+          "rot": "Terminal · app-info",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nnpx -y @modelcontextprotocol/inspector@2.11.0 --cli node app.mjs --method tools/list --app-info\necho \"saída: $?\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>turmas + MCP App: servidor no stdio\n{\"hasApp\":false,\"toolName\":\"buscar_turmas\"}\n{\"hasApp\":false,\"toolName\":\"reservar_vaga\"}\n{\"hasApp\":true,\"toolName\":\"ver_turmas\",\"resourceUri\":\"ui://turmas/painel.html\",\"resourceMimeType\":\"text/html;profile=mcp-app\"}\nsaída: 0</pre><p>Só <code>ver_turmas</code> tem interface. Para ver o painel desenhado, ligue o servidor a um cliente com suporte a MCP Apps; o Claude Code no terminal mostra só o texto do resultado.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Practice",
+      "sub": "Conferir e mudar o painel.",
+      "exercicios": [
+        {
+          "id": "e18",
+          "titulo": "E18 · O vínculo",
+          "min": "5 min",
+          "texto": "Rode o bloco <b>app-info</b>.",
+          "pronto": "a saída tem <code>\"hasApp\":true,\"toolName\":\"ver_turmas\"</code> e <code>\"resourceMimeType\":\"text/html;profile=mcp-app\"</code>, e <code>saída: 0</code>."
+        },
+        {
+          "id": "e19",
+          "titulo": "E19 · Sem vínculo",
+          "min": "5 min",
+          "texto": "Troque <code>resourceUri</code> por <code>ui://turmas/outro.html</code> no <code>app.mjs</code>, rode de novo e depois desfaça.",
+          "pronto": "a linha de <code>ver_turmas</code> passa a mostrar <code>\"resourceError\":\"Resource not found: ui://turmas/outro.html\"</code>; desfeito, volta <code>\"resourceMimeType\":\"text/html;profile=mcp-app\"</code>."
+        },
+        {
+          "id": "e20",
+          "titulo": "E20 · Seu painel",
+          "min": "15 min",
+          "texto": "Mude o <code>painel.html</code> para mostrar só turmas com vaga e rode o teste da aula 8.",
+          "pronto": "<code>npm test</code> → <code>ℹ fail 0</code> (o painel não quebra o servidor)."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Lesson quiz",
+      "perguntas": [
+        {
+          "p": "Como uma ferramenta diz ao cliente que tem interface?",
+          "opcoes": [
+            "Devolvendo HTML no campo content",
+            "Com outro nome terminado em _ui",
+            "Pelo cabeçalho Mcp-Name",
+            "Com _meta.ui.resourceUri apontando um recurso ui://"
+          ],
+          "certa": 3,
+          "explica": "O vínculo é o resourceUri; o HTML é um recurso à parte, com o tipo text/html;profile=mcp-app.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "O cliente não tem suporte a MCP Apps. O que acontece com ver_turmas?",
+          "opcoes": [
+            "A chamada falha com erro",
+            "Funciona como ferramenta comum e devolve o texto",
+            "O servidor recusa a conexão",
+            "O modelo não vê a ferramenta"
+          ],
+          "certa": 1,
+          "explica": "A interface é extra. Sem suporte, o cliente usa o content e o structuredContent como em qualquer ferramenta.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "Onde o painel roda?",
+          "opcoes": [
+            "No servidor, gerando imagem",
+            "No terminal do usuário",
+            "Num iframe isolado dentro do cliente",
+            "Numa aba nova do navegador, fora do cliente"
+          ],
+          "certa": 2,
+          "explica": "O cliente desenha o HTML num iframe com sandbox; rede externa só com csp declarado pelo servidor.",
+          "ref": "diagrama"
+        },
+        {
+          "p": "Por que o kit diz que o embutir do bundle é atalho?",
+          "opcoes": [
+            "Depende do nome interno do build 2.0.3 e pode quebrar noutra versão",
+            "Porque é proibido pela especificação",
+            "Porque deixa o servidor mais lento",
+            "Porque não funciona no Node 20"
+          ],
+          "certa": 0,
+          "explica": "O truque troca o export final do arquivo empacotado. Para projeto real, use o quickstart oficial com bundler.",
+          "ref": "texto"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "In three sentences",
+      "itens": [
+        {
+          "t": "Vínculo",
+          "texto": "_meta.ui.resourceUri na ferramenta; HTML como recurso ui://."
+        },
+        {
+          "t": "Client",
+          "texto": "Desenha num iframe isolado; sem suporte, só texto."
+        },
+        {
+          "t": "Check",
+          "texto": "Inspector --app-info → hasApp:true."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Going further",
+      "links": [
+        {
+          "t": "Anúncio do MCP Apps (26/01/2026)",
+          "href": "https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/"
+        },
+        {
+          "t": "Repositório ext-apps (especificação, exemplos e quickstart)",
+          "href": "https://github.com/modelcontextprotocol/ext-apps"
+        }
+      ]
+    }
+  ]
+}

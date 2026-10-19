@@ -1,0 +1,277 @@
+{
+  "slug": "http-sem-estado",
+  "num": 4,
+  "menu": "HTTP",
+  "titulo": "Stateless Streamable HTTP: server/discover, Mcp-Method and Mcp-Name headers",
+  "titulo_curto": "Stateless HTTP",
+  "minutos": 20,
+  "lead": "For the service to handle many clients at one URL, the transport is Streamable HTTP. In the 2026-07-28 revision it became stateless: no session to keep, each request carries what it needs. In this lesson you bring up the same server over HTTP and talk to it with curl, even making mistakes on purpose.",
+  "objetivo": "serve the same server over stateless Streamable HTTP and read server/discover and the Mcp-Method and Mcp-Name headers in a request made by hand.",
+  "competencias": [
+    "servir-mcp-por-http-sem-estado",
+    "ler-pedido-da-revisao-2026-07-28",
+    "proteger-localhost-contra-dns-rebinding"
+  ],
+  "aprende": [
+    {
+      "icone": "nuvem",
+      "t": "The same factory over HTTP with createMcpHandler"
+    },
+    {
+      "icone": "lupa",
+      "t": "server/discover: what the server announces"
+    },
+    {
+      "icone": "portao",
+      "t": "Required headers and the -32020 error when they are missing"
+    },
+    {
+      "icone": "escudo",
+      "t": "Host and Origin guards on localhost; old client still served"
+    }
+  ],
+  "hero_alt": "Dark network rack with several cables plugged into a switch, small white lights.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "One request, from curl to the response",
+      "sub": "Click each step.",
+      "nos": [
+        {
+          "icone": "enviar",
+          "titulo": "Request",
+          "sub": "POST /mcp",
+          "detalhe": "JSON-RPC body with <code>_meta</code>: protocol version, client name and capabilities. It goes in every request, because there is no session to remember."
+        },
+        {
+          "icone": "lista",
+          "titulo": "Headers",
+          "sub": "mirror the body",
+          "detalhe": "<code>MCP-Protocol-Version</code>, <code>Mcp-Method</code> and, on methods with a name (like <code>tools/call</code>), <code>Mcp-Name</code>. A load balancer or firewall can route without opening the JSON. The server checks that they match the body."
+        },
+        {
+          "icone": "escudo",
+          "titulo": "Guards",
+          "sub": "Host and Origin",
+          "detalhe": "Before the handler: on localhost, the <code>Host</code> check blocks DNS rebinding (a malicious page pointing its own domain to 127.0.0.1). The SDK handler does not do this by itself."
+        },
+        {
+          "icone": "camadas",
+          "titulo": "Factory",
+          "sub": "per request",
+          "forte": true,
+          "detalhe": "<code>createMcpHandler(createServer)</code> builds a new <code>McpServer</code> on every request. The protocol keeps nothing between requests; your service's data (database, cache) lives outside the factory."
+        },
+        {
+          "icone": "check",
+          "titulo": "Response",
+          "sub": "JSON",
+          "detalhe": "Um corpo JSON com <code>resultType</code> (<code>complete</code> ou <code>input_required</code>) e a identificação do servidor em <code>_meta</code>. Vira stream SSE só se a ferramenta mandar notificação antes do resultado."
+        }
+      ]
+    },
+    {
+      "tipo": "texto",
+      "titulo": "O que saiu do HTTP de 2025",
+      "paragrafos": [
+        "Tutoriais de 2025 ensinam SSE como transporte próprio, um <code>initialize</code> no começo e o cabeçalho <code>Mcp-Session-Id</code> para amarrar os pedidos de uma sessão. Na 2026-07-28 isso saiu: sem sessão, sem <code>initialize</code>, e o GET/SSE para receber avisos virou <code>subscriptions/listen</code> (changelog oficial, lido em 19/10/2026).",
+        "Sem estado, o servidor escala como qualquer API: duas instâncias atrás de um balanceador atendem igual. O que precisar sobreviver entre pedidos é dado seu, guardado por você."
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "O servidor HTTP do kit",
+      "sub": "Mesma fábrica da aula 2. Escuta só em 127.0.0.1.",
+      "blocos": [
+        {
+          "rot": "Arquivo · kit/http.mjs",
+          "icone": "arquivo",
+          "conteudo": "// http.mjs — serve o servidor de turmas por Streamable HTTP, sem estado, em 127.0.0.1.\n// Cada requisição monta um McpServer novo (createMcpHandler): o protocolo não guarda sessão.\n// O dado do seu serviço (aqui, TURMAS no módulo) continua seu: banco, cache, pool ficam fora da fábrica.\n// As guardas de Host e Origin barram DNS rebinding (página maliciosa falando com o seu localhost).\nimport { createServer as criarHttp } from 'node:http';\nimport { createMcpHandler } from '@modelcontextprotocol/server';\nimport { toNodeHandler, localhostHostValidation, localhostOriginValidation } from '@modelcontextprotocol/node';\nimport { createServer } from './servidor.mjs';\n\nconst PORTA = Number(process.env.PORTA ?? 3333);\nconst handler = createMcpHandler(createServer);\nconst node = toNodeHandler(handler);\nconst hostOk = localhostHostValidation();\nconst origemOk = localhostOriginValidation();\n\nconst http = criarHttp((req, res) => {\n  if (!hostOk(req, res) || !origemOk(req, res)) return; // responde 403 sozinho\n  if (!req.url.startsWith('/mcp')) { res.writeHead(404).end(); return; }\n  void node(req, res);\n});\nhttp.listen(PORTA, '127.0.0.1', () => console.error(`turmas: MCP em http://127.0.0.1:${PORTA}/mcp`));\n\nprocess.on('SIGINT', async () => { await handler.close(); http.close(); process.exit(0); });\nprocess.on('SIGTERM', async () => { await handler.close(); http.close(); process.exit(0); });"
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Pergunte ao servidor o que ele oferece",
+      "sub": "server/discover feito à mão. O bloco sobe o servidor, pergunta e desliga.",
+      "blocos": [
+        {
+          "rot": "Terminal · server/discover",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nPORTA=3333 node http.mjs & PID=$!; sleep 1\ncurl -s -X POST http://127.0.0.1:3333/mcp \\\n  -H 'Content-Type: application/json' \\\n  -H 'Accept: application/json, text/event-stream' \\\n  -H 'MCP-Protocol-Version: 2026-07-28' \\\n  -H 'Mcp-Method: server/discover' \\\n  -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"server/discover\",\"params\":{\"_meta\":{\n       \"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\",\n       \"io.modelcontextprotocol/clientInfo\":{\"name\":\"curl\",\"version\":\"1.0.0\"},\n       \"io.modelcontextprotocol/clientCapabilities\":{}}}}' | grep '\"supportedVersions\"'\nS=$?; kill $PID; wait $PID 2>/dev/null; echo \"saída: $S\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>turmas: MCP em http://127.0.0.1:3333/mcp\n{\"result\":{\"supportedVersions\":[\"2026-07-28\"],\"capabilities\":{\"tools\":{\"listChanged\":true},\"resources\":{\"listChanged\":true},\"prompts\":{\"listChanged\":true}},\"resultType\":\"complete\",\"ttlMs\":0,\"cacheScope\":\"private\",\"_meta\":{\"io.modelcontextprotocol/serverInfo\":{\"name\":\"turmas\",\"version\":\"1.0.0\"}}},\"jsonrpc\":\"2.0\",\"id\":1}\nsaída: 0</pre><p><code>supportedVersions</code> diz as revisões que ele fala; <code>capabilities</code>, o que oferece. <code>ttlMs</code> e <code>cacheScope</code> são as dicas de cache da revisão nova.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Chame uma ferramenta, com e sem Mcp-Name",
+      "sub": "O segundo pedido é o mesmo, sem o cabeçalho. O servidor recusa porque cabeçalho e corpo não batem.",
+      "blocos": [
+        {
+          "rot": "Terminal · tools/call à mão",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nPORTA=3333 node http.mjs & PID=$!; sleep 1\nMETA='\"_meta\":{\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\",\"io.modelcontextprotocol/clientInfo\":{\"name\":\"curl\",\"version\":\"1.0.0\"},\"io.modelcontextprotocol/clientCapabilities\":{}}'\nchamar() {  # $1 = valor do cabeçalho Mcp-Name (vazio = sem o cabeçalho)\n  curl -s -w ' [HTTP %{http_code}]\\n' -X POST http://127.0.0.1:3333/mcp \\\n    -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \\\n    -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' ${1:+-H \"Mcp-Name: $1\"} \\\n    -d '{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"buscar_turmas\",\"arguments\":{\"termo\":\"mcp\"},'\"$META\"'}}'\n}\necho \"## com Mcp-Name\"; chamar buscar_turmas\necho \"## sem Mcp-Name\"; chamar \"\"\nkill $PID; wait $PID 2>/dev/null"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>turmas: MCP em http://127.0.0.1:3333/mcp\n## com Mcp-Name\n{\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"mcp-01 · Servidor MCP em uma tarde · 1 vagas\\nmcp-02 · MCP com autorização · 0 vagas\"}],\"structuredContent\":{\"turmas\":[{\"id\":\"mcp-01\",\"titulo\":\"Servidor MCP em uma tarde\",\"vagas\":1},{\"id\":\"mcp-02\",\"titulo\":\"MCP com autorização\",\"vagas\":0}]},\"resultType\":\"complete\",\"_meta\":{\"io.modelcontextprotocol/serverInfo\":{\"name\":\"turmas\",\"version\":\"1.0.0\"}}},\"jsonrpc\":\"2.0\",\"id\":2} [HTTP 200]\n## sem Mcp-Name\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32020,\"message\":\"Bad Request: the request headers and body disagree: the body carries params.name=\\\"buscar_turmas\\\" but the required Mcp-Name header is absent\",\"data\":{\"mismatch\":{\"header\":\"(missing)\",\"body\":\"the body carries params.name=\\\"buscar_turmas\\\" but the required Mcp-Name header is absent\"}}},\"id\":2} [HTTP 400]</pre><p>Cliente feito com o SDK manda os três cabeçalhos sozinho. O erro <code>-32020</code> aparece em cliente escrito à mão ou em proxy que remove cabeçalhos.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Cliente antigo continua atendido",
+      "sub": "Um pedido initialize da revisão 2025-11-25 no mesmo servidor.",
+      "blocos": [
+        {
+          "rot": "Terminal · cliente 2025",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nPORTA=3333 node http.mjs & PID=$!; sleep 1\nC=${TMPDIR:-/tmp}/cabecalhos-mcp.txt\n# um cliente da revisão 2025-11-25 ainda abre com initialize; o mesmo servidor responde\ncurl -s -D \"$C\" -X POST http://127.0.0.1:3333/mcp \\\n  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \\\n  -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{},\"clientInfo\":{\"name\":\"antigo\",\"version\":\"1.0.0\"}}}' \\\n  | grep -o '\"protocolVersion\":\"[^\"]*\"'\necho \"Mcp-Session-Id na resposta: $(grep -ci '^mcp-session-id' \"$C\")\"\nrm -f \"$C\"; kill $PID; wait $PID 2>/dev/null"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>turmas: MCP em http://127.0.0.1:3333/mcp\n\"protocolVersion\":\"2025-11-25\"\nMcp-Session-Id na resposta: 0</pre><p>O handler do SDK v2 atende a era 2025 sem estado e não devolve <code>Mcp-Session-Id</code>. Você não precisa de dois servidores durante a transição.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Practice",
+      "sub": "Três pedidos à mão e um ajuste seu.",
+      "exercicios": [
+        {
+          "id": "e9",
+          "titulo": "E9 · discover",
+          "min": "5 min",
+          "texto": "Rode o bloco <b>server/discover</b>.",
+          "pronto": "a saída tem <code>\"supportedVersions\":[\"2026-07-28\"]</code> e termina em <code>saída: 0</code>. Deu <code>saída: 1</code>? Veja se a porta 3333 está livre (<code>ss -ltn | grep 3333</code>)."
+        },
+        {
+          "id": "e10",
+          "titulo": "E10 · O erro de cabeçalho",
+          "min": "5 min",
+          "texto": "Rode o bloco <b>tools/call à mão</b>.",
+          "pronto": "primeira chamada <code>[HTTP 200]</code> com <code>\"structuredContent\"</code>; segunda <code>[HTTP 400]</code> com <code>\"code\":-32020</code>."
+        },
+        {
+          "id": "e11",
+          "titulo": "E11 · Outra porta",
+          "min": "5 min",
+          "texto": "Suba o servidor com <code>PORTA=4000 node http.mjs</code> e repita o discover trocando a porta no curl.",
+          "pronto": "o curl em <code>http://127.0.0.1:4000/mcp</code> devolve <code>\"supportedVersions\"</code>."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Lesson quiz",
+      "perguntas": [
+        {
+          "p": "Na revisão 2026-07-28, como o servidor sabe a versão e as capacidades do cliente?",
+          "opcoes": [
+            "Pelo _meta que vai em cada pedido",
+            "Pela sessão aberta no initialize",
+            "Pelo cabeçalho Mcp-Session-Id",
+            "Por um arquivo de configuração no servidor"
+          ],
+          "certa": 0,
+          "explica": "Sem sessão, cada pedido leva versão, nome e capacidades em <code>_meta</code>. initialize e <code>Mcp-Session-Id</code> são da era 2025.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "O tools/call sem o cabeçalho Mcp-Name volta com qual resultado?",
+          "opcoes": [
+            "HTTP 200 com lista vazia",
+            "HTTP 401 pedindo token",
+            "HTTP 400 com o erro -32020",
+            "HTTP 404, rota inexistente"
+          ],
+          "certa": 2,
+          "explica": "O servidor confere cabeçalho e corpo. Faltando <code>Mcp-Name</code> num método que tem nome, recusa com 400 e -32020 (cabeçalho e corpo discordam).",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "Para que servem as guardas de Host e Origin no servidor em 127.0.0.1?",
+          "opcoes": [
+            "Para limitar o tamanho do corpo",
+            "Para barrar DNS rebinding de páginas maliciosas",
+            "Para escolher a revisão do protocolo",
+            "Para comprimir a resposta"
+          ],
+          "certa": 1,
+          "explica": "Uma página pode apontar o próprio domínio para 127.0.0.1 e o navegador trata o seu servidor local como mesma origem. A guarda de Host barra isso; o handler do SDK não faz sozinho.",
+          "ref": "diagrama"
+        },
+        {
+          "p": "Um cliente antigo manda initialize (2025-11-25) para o servidor do kit. O que acontece?",
+          "opcoes": [
+            "Recusa: só a revisão nova é aceita",
+            "Abre uma sessão com Mcp-Session-Id",
+            "Precisa de um segundo servidor só para ele",
+            "É atendido sem estado pelo mesmo servidor"
+          ],
+          "certa": 3,
+          "explica": "O handler do SDK v2 serve as duas eras. A captura mostra <code>protocolVersion 2025-11-25</code> e zero <code>Mcp-Session-Id</code>.",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "In three sentences",
+      "itens": [
+        {
+          "t": "Sem estado",
+          "texto": "Cada pedido leva _meta; nada de sessão nem initialize."
+        },
+        {
+          "t": "Headers",
+          "texto": "MCP-Protocol-Version, Mcp-Method e Mcp-Name espelham o corpo."
+        },
+        {
+          "t": "Localhost",
+          "texto": "Guardas de Host e Origin na frente do handler."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Going further",
+      "links": [
+        {
+          "t": "Especificação 2026-07-28: transportes",
+          "href": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports"
+        },
+        {
+          "t": "SDK v2: servir por HTTP",
+          "href": "https://ts.sdk.modelcontextprotocol.io/v2/serving/http"
+        },
+        {
+          "t": "SDK v2: clientes antigos",
+          "href": "https://ts.sdk.modelcontextprotocol.io/v2/serving/legacy-clients"
+        }
+      ]
+    }
+  ]
+}
