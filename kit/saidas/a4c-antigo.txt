@@ -1,0 +1,3 @@
+turmas: MCP em http://127.0.0.1:3333/mcp
+"protocolVersion":"2025-11-25"
+Mcp-Session-Id na resposta: 0

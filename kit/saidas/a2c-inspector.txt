@@ -1,0 +1,19 @@
+turmas: servidor MCP no stdio
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "html-01 · HTML semântico para agentes · 3 vagas"
+    }
+  ],
+  "structuredContent": {
+    "turmas": [
+      {
+        "id": "html-01",
+        "titulo": "HTML semântico para agentes",
+        "vagas": 3
+      }
+    ]
+  }
+}
+saída: 0

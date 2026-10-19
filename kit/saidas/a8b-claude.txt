@@ -1,0 +1,11 @@
+Added stdio MCP server turmas with command: node /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/stdio.mjs to project config
+File modified: /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/.mcp.json
+turmas:
+  Scope: Project config (shared via .mcp.json)
+  Status: ⏸ Pending approval (run `claude` to approve)
+  Type: stdio
+  Command: node
+  Args: /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/stdio.mjs
+  Environment:
+
+To remove this server, run: claude mcp remove turmas -s project

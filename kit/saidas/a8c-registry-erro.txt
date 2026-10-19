@@ -1,0 +1,4 @@
+Validating against https://registry.modelcontextprotocol.io...
+Error: validation failed: server returned status 422: {"title":"Unprocessable Entity","status":422,"detail":"validation failed","errors":[{"message":"expected length <= 100","location":"body.description","value":"Busca turmas e reserva vaga com confirmação do usuário, mostra painel, conversa com o agente e muito mais coisas úteis aqui."}]}
+
+saída: 1

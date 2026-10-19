@@ -1,0 +1,22 @@
+{
+  "name": "kit-servidor-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kit do curso Servidor MCP do seu serviço (Formação WebMCP, INEMA.CLUB). Versões fixadas em 19/10/2026.",
+  "type": "module",
+  "scripts": {
+    "stdio": "node stdio.mjs",
+    "http": "node http.mjs",
+    "test": "node --test teste.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.3.1",
+    "@modelcontextprotocol/ext-apps": "2.0.3",
+    "@modelcontextprotocol/node": "2.1.1",
+    "@modelcontextprotocol/server": "2.3.1",
+    "zod": "4.6.7"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,12 @@
+turmas (com token): http://127.0.0.1:3334/mcp
+## sem token
+HTTP/1.1 401 Unauthorized
+www-authenticate: Bearer error="invalid_token", error_description="Missing Authorization header", scope="turmas:ler", resource_metadata="http://127.0.0.1:3334/.well-known/oauth-protected-resource/mcp"
+## metadados do recurso (RFC 9728)
+{"resource":"http://127.0.0.1:3334/mcp","authorization_servers":["https://auth.exemplo.com"],"scopes_supported":["turmas:ler","turmas:reservar"]}
+## token de leitura
+buscar_turmas: ok
+reservar_vaga: recusado (Insufficient scope: required "turmas:reservar")
+## token de reserva
+buscar_turmas: ok
+reservar_vaga: reservado: html-01 para aluno@exemplo.com (restam 2)

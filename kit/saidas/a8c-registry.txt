@@ -1,0 +1,3 @@
+Validating against https://registry.modelcontextprotocol.io...
+✅ server.json is valid
+saída: 0

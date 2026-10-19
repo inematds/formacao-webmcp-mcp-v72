@@ -1,0 +1,8 @@
+ok    buscar_turmas: descrição com 20+ caracteres
+ok    buscar_turmas: diz se é só leitura
+ok    reservar_vaga: descrição com 20+ caracteres
+ok    reservar_vaga: diz se é só leitura
+ok    buscar_turmas devolve structuredContent com 1 turma
+ok    argumento inválido vira isError: Input validation error: Invalid arguments for tool buscar_turmas: term…
+0 falhas
+saída: 0

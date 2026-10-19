@@ -1,0 +1,2 @@
+recusado: -32021 Cannot request input 'confirmar' (elicitation/create): the request's client capabilities do not declare the re
+saída: 1

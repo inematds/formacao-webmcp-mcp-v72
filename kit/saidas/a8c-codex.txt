@@ -1,0 +1,3 @@
+Added global MCP server 'turmas'.
+Name    Command  Args                                                            Env  Cwd  Status   Auth       
+turmas  node     /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/stdio.mjs  -    -    enabled  Unsupported

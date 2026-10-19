@@ -1,0 +1,4 @@
+turmas: servidor MCP no stdio
+era: modern · ferramentas: buscar_turmas, reservar_vaga
+buscar_turmas → 2 turmas
+saída: 0

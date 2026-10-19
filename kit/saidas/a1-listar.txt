@@ -1,0 +1,7 @@
+era: modern
+ferramenta: buscar_turmas · readOnlyHint=true
+ferramenta: reservar_vaga · readOnlyHint=false
+recurso: turmas://catalogo
+prompt: convite_turma
+2 ferramentas · 1 recurso · 1 prompt
+saída: 0

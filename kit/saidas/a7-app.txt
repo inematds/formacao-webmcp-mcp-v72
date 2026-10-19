@@ -1,0 +1,5 @@
+turmas + MCP App: servidor no stdio
+{"hasApp":false,"toolName":"buscar_turmas"}
+{"hasApp":false,"toolName":"reservar_vaga"}
+{"hasApp":true,"toolName":"ver_turmas","resourceUri":"ui://turmas/painel.html","resourceMimeType":"text/html;profile=mcp-app"}
+saída: 0

@@ -1,0 +1,11 @@
+✔ cliente novo negocia a revisão 2026-07-28 (era modern) (43.097669ms)
+✔ cliente antigo (initialize, 2025-11-25) ainda é atendido (37.721172ms)
+✔ buscar_turmas é só leitura e devolve dado estruturado (20.015635ms)
+✔ argumento inválido volta como isError, sem rodar o handler (3.965184ms)
+✔ reservar_vaga só reserva depois da confirmação (MRTR) (15.684146ms)
+✔ turma sem vaga é recusada com isError (2.665568ms)
+✔ o processo stdio sobe e lista as ferramentas (243.920508ms)
+ℹ tests 7
+ℹ pass 7
+ℹ fail 0
+saída: 0

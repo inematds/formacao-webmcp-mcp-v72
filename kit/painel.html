@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Turmas</title>
+<style>
+  body { font: 15px/1.4 system-ui, sans-serif; margin: 12px; color: #111; }
+  li { margin: 4px 0; }
+  .zero { color: #a00; }
+</style>
+</head>
+<body>
+<h3>Turmas encontradas</h3>
+<ul id="lista"><li>aguardando o resultado da ferramenta…</li></ul>
+<script type="module">
+  /*APP_JS*/
+  // A View conversa com o cliente (host) por postMessage; a classe App cuida do aperto de mão.
+  const app = new App({ name: 'painel-turmas', version: '1.0.0' }, {});
+  app.ontoolresult = ({ structuredContent }) => {
+    const lista = document.getElementById('lista');
+    lista.replaceChildren(...(structuredContent?.turmas ?? []).map(t => {
+      const li = document.createElement('li');
+      li.textContent = `${t.titulo} — ${t.vagas} vagas`;
+      if (t.vagas === 0) li.className = 'zero';
+      return li;
+    }));
+  };
+  await app.connect();
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+1ª volta: resultType=input_required · pede: confirmar
+[cliente] pergunta ao usuário: Reservar 1 vaga em "HTML semântico para agentes" para aluno@exemplo.com? → sim
+resultado: reservado: html-01 para aluno@exemplo.com (restam 2) · isError=false
+saída: 0
