@@ -128,7 +128,7 @@
         "abas": [
           {
             "rot": "Salida capturada (19/10/2026)",
-            "html": "<pre>turmas: servidor MCP no stdio\nera: modern · ferramentas: buscar_turmas, reservar_vaga\nbuscar_turmas → 2 turmas\nsaída: 0</pre><p>A primeira linha veio do stderr do servidor; o resto, do cliente.</p>"
+            "html": "<pre>turmas: servidor MCP no stdio\nera: modern · ferramentas: buscar_turmas, reservar_vaga\nbuscar_turmas → 2 turmas\nsaída: 0</pre><p>La primera línea vino del stderr del servidor; el resto, del cliente.</p>"
           },
           {
             "rot": "Error común: olvidaste el npm ci",
