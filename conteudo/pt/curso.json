@@ -11,16 +11,16 @@
   "lado_card": {
     "rot": "Formação WebMCP",
     "t": "Curso 1 de 6",
-    "texto": "Base, servidor MCP, WebMCP no site, agentes de navegador, segurança e expert. Este é o lado do servidor.",
-    "link": "Ver a área da formação",
-    "href": "https://eventos.inema.pro/webmcp/"
+    "texto": "O lado do servidor: SDK oficial v2 (2.3.1) na revisão 2026-07-28. O kit roda sem custo e sem chave.",
+    "link": "Abrir a pasta kit/ no GitHub",
+    "href": "https://github.com/inematds/formacao-webmcp-mcp-v72/tree/main/kit"
   },
   "rodape": "INEMA.CLUB · conteúdo aberto e gratuito · formato INEMA Learning v7.2 · <a href=\"https://eventos.inema.pro/webmcp/\">eventos.inema.pro/webmcp</a> · <a href=\"https://inema.club/\">inema.club</a> · kit testado em 19/10/2026 com o SDK oficial do MCP 2.3.1",
   "videos": {},
   "inicio": {
     "kicker": "Formação WebMCP · curso 1 de 6 · 8 aulas",
-    "titulo": "Servidor MCP do seu serviço, na revisão 2026-07-28",
-    "lead": "Ferramentas que o agente chama, com confirmação quando há consequência, token quando é remoto e teste automático no fim. Tudo com o SDK oficial do MCP (v2, 2.3.1), num kit que roda na sua máquina sem custo e sem chave.",
+    "titulo": "Servidor MCP do seu serviço, testado e na revisão vigente",
+    "lead": "Ferramentas que o agente chama, com confirmação quando há consequência, token quando é remoto e teste automático no fim. Tudo na revisão 2026-07-28 do MCP, com o SDK oficial (v2, 2.3.1), num kit que roda na sua máquina sem custo e sem chave.",
     "cta": "Começar pela aula 1",
     "cta2": {
       "t": "Ver a área da formação",
