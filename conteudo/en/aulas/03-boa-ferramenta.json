@@ -75,7 +75,7 @@
           "detalhe": "<code>content</code> for the model to read and, with <code>outputSchema</code>, <code>structuredContent</code> validated by the SDK before it goes out."
         }
       ],
-      "legenda": "Annotation semantics per the ToolAnnotations type in the 2026-07-28 revision (official SDK code, 10/13/2026)."
+      "legenda": "Semantics and defaults of the annotations follow the ToolAnnotations type in the 2026-07-28 specification (Tools page of the specification; types in the official SDK repository, read on 10/19/2026)."
     },
     {
       "tipo": "passos",

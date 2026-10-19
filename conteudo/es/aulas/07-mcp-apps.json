@@ -106,7 +106,7 @@
         "abas": [
           {
             "rot": "Salida capturada (19/10/2026)",
-            "html": "<pre>turmas + MCP App: servidor no stdio\n{\"hasApp\":false,\"toolName\":\"buscar_turmas\"}\n{\"hasApp\":false,\"toolName\":\"reservar_vaga\"}\n{\"hasApp\":true,\"toolName\":\"ver_turmas\",\"resourceUri\":\"ui://turmas/painel.html\",\"resourceMimeType\":\"text/html;profile=mcp-app\"}\nsaída: 0</pre><p>Solo <code>ver_turmas</code> tiene interfaz. Para ver el panel dibujado, conecta el servidor a un cliente con soporte para MCP Apps; Claude Code en la terminal muestra solo el texto del resultado.</p>"
+            "html": "<pre>turmas + MCP App: servidor no stdio\n{\"hasApp\":false,\"toolName\":\"buscar_turmas\"}\n{\"hasApp\":false,\"toolName\":\"reservar_vaga\"}\n{\"hasApp\":true,\"toolName\":\"ver_turmas\",\"resourceUri\":\"ui://turmas/painel.html\",\"resourceMimeType\":\"text/html;profile=mcp-app\"}\nsaída: 0</pre><p>Solo <code>ver_turmas</code> tiene interfaz. Para ver el panel dibujado, conecta el server a un client con soporte para MCP Apps; un client sin soporte muestra solo el texto del resultado.</p>"
           }
         ]
       }
@@ -134,8 +134,8 @@
           "id": "e20",
           "titulo": "E20 · Tu panel",
           "min": "15 min",
-          "texto": "Cambia el <code>painel.html</code> para mostrar solo grupos con plaza y ejecuta la prueba de la clase 8.",
-          "pronto": "<code>npm test</code> → <code>ℹ fail 0</code> (el panel no rompe el servidor)."
+          "texto": "Cambia el <code>painel.html</code> para mostrar solo los grupos con plaza (filtra la lista con <code>filter(</code>) y ejecuta de nuevo el bloque <b>app-info</b>.",
+          "pronto": "<code>grep -c \"filter(\" painel.html</code> → 1 o más (antes del cambio: 0), y el bloque <b>app-info</b> sigue con <code>\"hasApp\":true</code>."
         }
       ]
     },

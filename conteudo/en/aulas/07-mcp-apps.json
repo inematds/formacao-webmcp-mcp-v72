@@ -106,7 +106,7 @@
         "abas": [
           {
             "rot": "Captured output (10/19/2026)",
-            "html": "<pre>turmas + MCP App: servidor no stdio\n{\"hasApp\":false,\"toolName\":\"buscar_turmas\"}\n{\"hasApp\":false,\"toolName\":\"reservar_vaga\"}\n{\"hasApp\":true,\"toolName\":\"ver_turmas\",\"resourceUri\":\"ui://turmas/painel.html\",\"resourceMimeType\":\"text/html;profile=mcp-app\"}\nsaída: 0</pre><p>Só <code>ver_turmas</code> tem interface. Para ver o painel desenhado, ligue o servidor a um cliente com suporte a MCP Apps; o Claude Code no terminal mostra só o texto do resultado.</p>"
+            "html": "<pre>turmas + MCP App: servidor no stdio\n{\"hasApp\":false,\"toolName\":\"buscar_turmas\"}\n{\"hasApp\":false,\"toolName\":\"reservar_vaga\"}\n{\"hasApp\":true,\"toolName\":\"ver_turmas\",\"resourceUri\":\"ui://turmas/painel.html\",\"resourceMimeType\":\"text/html;profile=mcp-app\"}\nsaída: 0</pre><p>Only <code>ver_turmas</code> has an interface. To see the panel rendered, connect the server to a client that supports MCP Apps; a client without support shows only the text of the result.</p>"
           }
         ]
       }
@@ -134,8 +134,8 @@
           "id": "e20",
           "titulo": "E20 · Your panel",
           "min": "15 min",
-          "texto": "Change <code>painel.html</code> to show only classes with open seats and run the lesson 8 test.",
-          "pronto": "<code>npm test</code> → <code>ℹ fail 0</code> (the panel doesn't break the server)."
+          "texto": "Change <code>painel.html</code> to show only classes with open seats (filter the list with <code>filter(</code>) and run the <b>app-info</b> block again.",
+          "pronto": "<code>grep -c \"filter(\" painel.html</code> → 1 or more (before the change: 0), and the <b>app-info</b> block still shows <code>\"hasApp\":true</code>."
         }
       ]
     },

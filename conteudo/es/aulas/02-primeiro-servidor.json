@@ -80,7 +80,7 @@
         "abas": [
           {
             "rot": "Salida capturada (19/10/2026)",
-            "html": "<pre>Cloning into '~/projetos/formacao-webmcp-mcp-v72'...\n\nadded 19 packages, and audited 20 packages in 3s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre>"
+            "html": "<pre>Cloning into '~/projetos/formacao-webmcp-mcp-v72'...\n\nadded 19 packages, and audited 20 packages in 3s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre><p>En la captura, la carpeta personal fue reemplazada por <code>~</code>; en tu terminal aparece la ruta completa.</p>"
           }
         ]
       }
@@ -164,7 +164,7 @@
       "paragrafos": [
         "En stdio, cada línea de stdout se lee como un mensaje JSON-RPC. Por eso el kit registra los logs con <code>console.error</code> (stderr). La documentación del SDK avisa que un <code>console.log</code> estropea el canal y el host puede cerrar la conexión.",
         "En nuestra prueba del 19/10/2026, el cliente del SDK 2.3.1 y el Inspector 2.11.0 se saltaron una línea sucia y siguieron. No cuentes con eso: otro host puede no perdonarlo. Los logs, siempre en stderr.",
-        "¿Prefieres Python? El SDK oficial <code>mcp</code> 2.3.0 (PyPI) también trae la revisión 2026-07-28 (<code>server/discover</code> e <code>InputRequiredResult</code> en el código del paquete). Este curso sigue en Node; los conceptos valen igual."
+        "¿Prefieres Python? El paquete del SDK oficial <code>mcp</code> 2.3.0 (PyPI, descargado el 19/10/2026) contiene <code>server/discover</code> e <code>InputRequiredResult</code> en el código; revisa las notas de versión del python-sdk antes de usarlo. Este curso sigue en Node; los conceptos valen igual."
       ]
     },
     {

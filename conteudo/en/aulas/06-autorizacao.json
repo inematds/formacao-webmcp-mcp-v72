@@ -168,7 +168,7 @@
           "titulo": "E17 · Your service's scopes",
           "min": "15 min",
           "texto": "In <code>mapa-mcp.md</code>, list one scope per tool that has consequences, and add <code>scopeChallenge: requireScopes(...)</code> to them.",
-          "pronto": "<code>grep -c \"requireScopes\" servidor.mjs</code> → equal to the number of tools with consequences."
+          "pronto": "<code>grep -c \"scopeChallenge:\" servidor.mjs</code> → equal to the number of tools with consequences."
         }
       ]
     },

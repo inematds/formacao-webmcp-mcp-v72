@@ -80,7 +80,7 @@
         "abas": [
           {
             "rot": "Captured output (10/19/2026)",
-            "html": "<pre>Cloning into '~/projetos/formacao-webmcp-mcp-v72'...\n\nadded 19 packages, and audited 20 packages in 3s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre>"
+            "html": "<pre>Cloning into '~/projetos/formacao-webmcp-mcp-v72'...\n\nadded 19 packages, and audited 20 packages in 3s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre><p>In the capture, the home folder was replaced with <code>~</code>; in your terminal the full path appears.</p>"
           }
         ]
       }
@@ -164,7 +164,7 @@
       "paragrafos": [
         "On stdio, every line of stdout is read as a JSON-RPC message. That's why the kit logs with <code>console.error</code> (stderr). The SDK documentation warns that a <code>console.log</code> corrupts the channel and the host may drop the connection.",
         "In our test on 10/19/2026, the SDK 2.3.1 client and Inspector 2.11.0 skipped a stray line and kept going. Don't count on that: another host may not be so forgiving. Always log to stderr.",
-        "Prefer Python? The official <code>mcp</code> 2.3.0 SDK (PyPI) also ships the 2026-07-28 revision (<code>server/discover</code> and <code>InputRequiredResult</code> in the package code). This course stays in Node; the concepts apply the same way."
+        "Prefer Python? The official SDK package <code>mcp</code> 2.3.0 (PyPI, downloaded on 10/19/2026) contains <code>server/discover</code> and <code>InputRequiredResult</code> in its code; check the python-sdk release notes before using it. This course stays with Node; the concepts apply equally."
       ]
     },
     {

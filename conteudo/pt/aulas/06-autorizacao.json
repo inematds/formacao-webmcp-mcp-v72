@@ -168,7 +168,7 @@
           "titulo": "E17 · Escopos do seu serviço",
           "min": "15 min",
           "texto": "Liste no <code>mapa-mcp.md</code> um escopo por ferramenta com consequência e ponha <code>scopeChallenge: requireScopes(...)</code> nelas.",
-          "pronto": "<code>grep -c \"requireScopes\" servidor.mjs</code> → igual ao número de ferramentas com consequência."
+          "pronto": "<code>grep -c \"scopeChallenge:\" servidor.mjs</code> → igual ao número de ferramentas com consequência."
         }
       ]
     },

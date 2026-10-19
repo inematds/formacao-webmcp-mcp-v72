@@ -135,7 +135,7 @@
         "abas": [
           {
             "rot": "Salida capturada (19/10/2026)",
-            "html": "<pre>recusado: -32021 Cannot request input 'confirmar' (elicitation/create): the request's client capabilities do not declare the re\nsaída: 1</pre><p>El SDK lo rechaza con <code>-32021</code> antes de enviar el pedido. En un host real, esto significa que ese cliente no puede usar la tool con confirmación: avisa en la descripción u ofrece otro camino.</p>"
+            "html": "<pre>recusado: -32021 Cannot request input 'confirmar' (elicitation/create): the request's client capabilities do not declare the re\nsaída: 1</pre><p>El propio script corta el mensaje a 110 caracteres (<code>slice</code>). El SDK rechaza con <code>-32021</code> antes de enviar la solicitud. En un host real, esto significa que ese client no puede usar la tool con confirmación: avísalo en la descripción u ofrece otro camino.</p>"
           }
         ]
       }

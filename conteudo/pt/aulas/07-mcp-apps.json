@@ -106,7 +106,7 @@
         "abas": [
           {
             "rot": "Saída capturada (19/10/2026)",
-            "html": "<pre>turmas + MCP App: servidor no stdio\n{\"hasApp\":false,\"toolName\":\"buscar_turmas\"}\n{\"hasApp\":false,\"toolName\":\"reservar_vaga\"}\n{\"hasApp\":true,\"toolName\":\"ver_turmas\",\"resourceUri\":\"ui://turmas/painel.html\",\"resourceMimeType\":\"text/html;profile=mcp-app\"}\nsaída: 0</pre><p>Só <code>ver_turmas</code> tem interface. Para ver o painel desenhado, ligue o servidor a um cliente com suporte a MCP Apps; o Claude Code no terminal mostra só o texto do resultado.</p>"
+            "html": "<pre>turmas + MCP App: servidor no stdio\n{\"hasApp\":false,\"toolName\":\"buscar_turmas\"}\n{\"hasApp\":false,\"toolName\":\"reservar_vaga\"}\n{\"hasApp\":true,\"toolName\":\"ver_turmas\",\"resourceUri\":\"ui://turmas/painel.html\",\"resourceMimeType\":\"text/html;profile=mcp-app\"}\nsaída: 0</pre><p>Só <code>ver_turmas</code> tem interface. Para ver o painel desenhado, ligue o servidor a um cliente com suporte a MCP Apps; cliente sem suporte mostra só o texto do resultado.</p>"
           }
         ]
       }
@@ -134,8 +134,8 @@
           "id": "e20",
           "titulo": "E20 · Seu painel",
           "min": "15 min",
-          "texto": "Mude o <code>painel.html</code> para mostrar só turmas com vaga e rode o teste da aula 8.",
-          "pronto": "<code>npm test</code> → <code>ℹ fail 0</code> (o painel não quebra o servidor)."
+          "texto": "Mude o <code>painel.html</code> para mostrar só turmas com vaga (filtre a lista com <code>filter(</code>) e rode o bloco <b>app-info</b> de novo.",
+          "pronto": "<code>grep -c \"filter(\" painel.html</code> → 1 ou mais (antes da mudança: 0), e o bloco <b>app-info</b> continua com <code>\"hasApp\":true</code>."
         }
       ]
     },

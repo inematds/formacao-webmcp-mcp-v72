@@ -168,7 +168,7 @@
           "titulo": "E17 · Scopes de tu servicio",
           "min": "15 min",
           "texto": "Lista en el <code>mapa-mcp.md</code> un scope por tool con consecuencia y pon <code>scopeChallenge: requireScopes(...)</code> en ellas.",
-          "pronto": "<code>grep -c \"requireScopes\" servidor.mjs</code> → igual al número de tools con consecuencia."
+          "pronto": "<code>grep -c \"scopeChallenge:\" servidor.mjs</code> → igual al número de tools con consecuencia."
         }
       ]
     },

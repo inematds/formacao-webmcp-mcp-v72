@@ -75,7 +75,7 @@
           "detalhe": "<code>content</code> para o modelo ler e, com <code>outputSchema</code>, <code>structuredContent</code> validado pelo SDK antes de sair."
         }
       ],
-      "legenda": "Semântica das anotações conforme o tipo ToolAnnotations da revisão 2026-07-28 (código do SDK oficial, 13/10/2026)."
+      "legenda": "Semântica e padrões das anotações conforme o tipo ToolAnnotations da especificação 2026-07-28 (página Tools da especificação; tipos no repositório do SDK oficial, lidos em 19/10/2026)."
     },
     {
       "tipo": "passos",

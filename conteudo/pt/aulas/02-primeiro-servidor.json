@@ -80,7 +80,7 @@
         "abas": [
           {
             "rot": "Saída capturada (19/10/2026)",
-            "html": "<pre>Cloning into '~/projetos/formacao-webmcp-mcp-v72'...\n\nadded 19 packages, and audited 20 packages in 3s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre>"
+            "html": "<pre>Cloning into '~/projetos/formacao-webmcp-mcp-v72'...\n\nadded 19 packages, and audited 20 packages in 3s\n\n2 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nkit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit\n├── @modelcontextprotocol/client@2.3.1\n├── @modelcontextprotocol/ext-apps@2.0.3\n├── @modelcontextprotocol/node@2.1.1\n├── @modelcontextprotocol/server@2.3.1\n└── zod@4.6.7</pre><p>Na captura, a pasta pessoal foi trocada por <code>~</code>; no seu terminal aparece o caminho completo.</p>"
           }
         ]
       }
@@ -164,7 +164,7 @@
       "paragrafos": [
         "No stdio, cada linha do stdout é lida como mensagem JSON-RPC. Por isso o kit loga com <code>console.error</code> (stderr). A documentação do SDK avisa que um <code>console.log</code> estraga o canal e o host pode derrubar a conexão.",
         "No nosso teste de 19/10/2026, o cliente do SDK 2.3.1 e o Inspector 2.11.0 pularam uma linha suja e seguiram. Não conte com isso: outro host pode não perdoar. Log sempre no stderr.",
-        "Prefere Python? O SDK oficial <code>mcp</code> 2.3.0 (PyPI) também traz a revisão 2026-07-28 (<code>server/discover</code> e <code>InputRequiredResult</code> no código do pacote). Este curso segue em Node; os conceitos valem igual."
+        "Prefere Python? O pacote do SDK oficial <code>mcp</code> 2.3.0 (PyPI, baixado em 19/10/2026) contém <code>server/discover</code> e <code>InputRequiredResult</code> no código; confira as notas de versão do python-sdk antes de usar. Este curso segue em Node; os conceitos valem igual."
       ]
     },
     {

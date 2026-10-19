@@ -39,7 +39,7 @@
       {"t": "Para quem é", "itens": [
         "Dev que roda Node e terminal e quer que o seu serviço seja usado por agentes (Claude Code, Codex e outros clientes MCP).",
         "Quem tem um servidor MCP feito em 2025 com SSE, sessão e initialize e precisa saber o que mudou.",
-        "Quem prefere Python: o SDK oficial em Python (mcp 2.3.0) também traz a revisão nova; os conceitos valem igual."
+        "Quem prefere Python: os conceitos valem igual; o curso usa Node (o SDK Python mcp 2.3.0 contém server/discover no código, sem prática aqui)."
       ]},
       {"t": "O que você sai fazendo", "itens": [
         "Um servidor com ferramenta só de leitura, ferramenta com consequência, recurso e prompt.",

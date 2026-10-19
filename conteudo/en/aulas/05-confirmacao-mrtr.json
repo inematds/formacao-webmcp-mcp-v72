@@ -135,7 +135,7 @@
         "abas": [
           {
             "rot": "Captured output (10/19/2026)",
-            "html": "<pre>recusado: -32021 Cannot request input 'confirmar' (elicitation/create): the request's client capabilities do not declare the re\nsaída: 1</pre><p>The SDK refuses with <code>-32021</code> before sending the request. On a real host, this means that client can't use the tool with confirmation: say so in the description or offer another path.</p>"
+            "html": "<pre>recusado: -32021 Cannot request input 'confirmar' (elicitation/create): the request's client capabilities do not declare the re\nsaída: 1</pre><p>The message is cut off at 110 characters by the script itself (<code>slice</code>). The SDK refuses with <code>-32021</code> before sending the request. In a real host, this means that client can't use the tool with confirmation: say so in the description or offer another path.</p>"
           }
         ]
       }

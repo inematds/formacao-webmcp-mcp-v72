@@ -111,7 +111,7 @@
         "abas": [
           {
             "rot": "Claude Code (19/10/2026)",
-            "html": "<pre>Added stdio MCP server turmas with command: node /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/stdio.mjs to project config\nFile modified: /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/.mcp.json\nturmas:\n  Scope: Project config (shared via .mcp.json)\n  Status: ⏸ Pending approval (run `claude` to approve)\n  Type: stdio\n  Command: node\n  Args: /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/stdio.mjs\n  Environment:\n\nTo remove this server, run: claude mcp remove turmas -s project</pre><p>Rode <code>claude</code> uma vez nessa pasta e aprove o servidor <code>turmas</code>. Depois, <code>claude mcp list</code> mostra a linha do servidor terminando em <code>✔ Connected</code>.</p>"
+            "html": "<pre>Added stdio MCP server turmas with command: node /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/stdio.mjs to project config\nFile modified: /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/.mcp.json\nturmas:\n  Scope: Project config (shared via .mcp.json)\n  Status: ⏸ Pending approval (run `claude` to approve)\n  Type: stdio\n  Command: node\n  Args: /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/stdio.mjs\n  Environment:\n\nTo remove this server, run: claude mcp remove turmas -s project</pre><p>Rode <code>claude</code> uma vez nessa pasta e aprove o servidor <code>turmas</code>. Depois, <code>claude mcp list</code> deve mostrar a linha do servidor terminando em <code>✔ Connected</code> (formato visto em outros servidores; esta aprovação não foi capturada).</p>"
           },
           {
             "rot": "Codex (19/10/2026)",
@@ -401,12 +401,12 @@
         {
           "p": "Por que a bateria usa handler.fetch e não InMemoryTransport para testar a revisão nova?",
           "opcoes": [
-            "O par em memória só conecta a era 2025",
             "handler.fetch é mais rápido e por isso é o recomendado",
             "InMemoryTransport precisa de porta",
+            "O par em memória só conecta a era 2025",
             "handler.fetch dispensa o cliente e chama o handler direto"
           ],
-          "certa": 0,
+          "certa": 2,
           "explica": "A doc do SDK v2: createLinkedPair conecta só instâncias da era 2025; handler.fetch é a entrada no mesmo processo para a 2026-07-28.",
           "ref": "codigo",
           "cert": true
@@ -414,12 +414,12 @@
         {
           "p": "Depois de claude mcp add -s project, claude mcp get mostra Pending approval. O que falta?",
           "opcoes": [
-            "Publicar o servidor no Registry oficial antes de usar",
             "Abrir o claude na pasta e aprovar o servidor",
+            "Publicar o servidor no Registry oficial antes de usar",
             "Instalar o Inspector",
             "Gerar um token OAuth e passar no cabeçalho da conexão"
           ],
-          "certa": 1,
+          "certa": 0,
           "explica": "Servidor de projeto (.mcp.json) pede aprovação na primeira vez. Aprovado, aparece ✔ Connected.",
           "ref": "codigo",
           "cert": true
@@ -428,11 +428,11 @@
           "p": "O que o mcp-publisher validate faz?",
           "opcoes": [
             "Publica o servidor no Registry",
-            "Testa as ferramentas do servidor",
-            "Valida o server.json sem publicar",
-            "Gera o package-lock.json"
+            "Testa as ferramentas do servidor chamando cada uma",
+            "Gera o package-lock.json",
+            "Valida o server.json sem publicar"
           ],
-          "certa": 2,
+          "certa": 3,
           "explica": "Valida contra o Registry e não publica. Publicar é outro comando e exige namespace verificado.",
           "ref": "codigo"
         },
@@ -440,11 +440,11 @@
           "p": "Em 19/10/2026, como o Registry oficial deve ser tratado?",
           "opcoes": [
             "Como padrão estável e obrigatório",
-            "Como substituto do npm",
-            "Como lista fechada só para empresas",
-            "Como preview, sujeito a mudança e reset"
+            "Como preview, sujeito a mudança e reset",
+            "Como substituto do npm para distribuir o pacote",
+            "Como lista fechada só para empresas"
           ],
-          "certa": 3,
+          "certa": 1,
           "explica": "O próprio Registry avisa: preview, com possíveis mudanças incompatíveis e reset de dados.",
           "ref": "diagrama"
         }
