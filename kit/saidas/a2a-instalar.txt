@@ -1,0 +1,15 @@
+(…) git clone omitido nesta captura: o repositório ainda não estava publicado
+
+added 19 packages, and audited 20 packages in 5s
+
+2 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+kit-servidor-mcp@1.0.0 ~/projetos/formacao-webmcp-mcp-v72/kit
+├── @modelcontextprotocol/client@2.3.1
+├── @modelcontextprotocol/ext-apps@2.0.3
+├── @modelcontextprotocol/node@2.1.1
+├── @modelcontextprotocol/server@2.3.1
+└── zod@4.6.7
+

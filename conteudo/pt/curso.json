@@ -3,34 +3,56 @@
   "lang": "pt-BR",
   "url": "https://inematds.github.io/formacao-webmcp-mcp-v72/",
   "nome": "Servidor MCP do seu serviço",
-  "sub": "Visão geral da formação",
+  "sub": "Formação WebMCP · curso 1",
   "volta": {
-    "t": "Área Do chat ao agente",
-    "href": "https://eventos.inema.pro/do-chat-ao-agente/"
+    "t": "Área WebMCP",
+    "href": "https://eventos.inema.pro/webmcp/"
   },
   "lado_card": {
-    "rot": "Prática desta formação",
-    "t": "23 exercícios com \"pronto quando\"",
-    "texto": "Quatro listas, uma por sequência. Só passe para o próximo quando ele for verdade.",
-    "link": "Abrir os exercícios",
-    "href": "https://inematds.github.io/jornada-agentes/guia/"
+    "rot": "Formação WebMCP",
+    "t": "Curso 1 de 6",
+    "texto": "Base, servidor MCP, WebMCP no site, agentes de navegador, segurança e expert. Este é o lado do servidor.",
+    "link": "Ver a área da formação",
+    "href": "https://eventos.inema.pro/webmcp/"
   },
-  "rodape": "INEMA.CLUB · conteúdo aberto e gratuito · formato INEMA Learning v7.2 · <a href=\"https://eventos.inema.pro/do-chat-ao-agente/\">eventos.inema.pro/do-chat-ao-agente</a> · <a href=\"https://inema.club/\">inema.club</a> · <a href=\"https://www.inema.club/cursos/323-do-chat-ao-agente-terminal-assistente-proprio-filas-e-redes-no-automatico/\">Ficha completa deste curso no INEMA.CLUB</a> · <a href=\"https://www.inema.club/aprender-inteligencia-artificial/\">Guia: como aprender inteligência artificial</a>",
+  "rodape": "INEMA.CLUB · conteúdo aberto e gratuito · formato INEMA Learning v7.2 · <a href=\"https://eventos.inema.pro/webmcp/\">eventos.inema.pro/webmcp</a> · <a href=\"https://inema.club/\">inema.club</a> · kit testado em 19/10/2026 com o SDK oficial do MCP 2.3.1",
   "videos": {},
   "inicio": {
-    "kicker": "Curso · visão geral da formação · 6 aulas",
-    "titulo": "Do chat ao agente: os quatro degraus para colocar IA trabalhando por você",
-    "lead": "Terminal, assistente próprio, fila de tarefas e redes no automático. Em seis aulas curtas você entende cada degrau, vê como as peças se ligam e sai com o plano e os modelos para fazer na ordem certa.",
+    "kicker": "Formação WebMCP · curso 1 de 6 · 8 aulas",
+    "titulo": "Servidor MCP do seu serviço, na revisão 2026-07-28",
+    "lead": "Ferramentas que o agente chama, com confirmação quando há consequência, token quando é remoto e teste automático no fim. Tudo com o SDK oficial do MCP (v2, 2.3.1), num kit que roda na sua máquina sem custo e sem chave.",
     "cta": "Começar pela aula 1",
     "cta2": {
       "t": "Ver a área da formação",
-      "href": "https://eventos.inema.pro/do-chat-ao-agente/"
+      "href": "https://eventos.inema.pro/webmcp/"
     },
-    "capa_alt": "Do chat ao agente: a jornada em quatro sequências — terminal, Jarvis, filas e redes.",
-    "numeros": [],
+    "capa_alt": "Servidor MCP do seu serviço: um notebook com terminal e um pequeno servidor com cabo plugado, numa mesa escura.",
+    "numeros": [
+      {"v": "8", "t": "aulas curtas"},
+      {"v": "2026-07-28", "t": "revisão do MCP ensinada"},
+      {"v": "2.3.1", "t": "versão do SDK oficial no kit"},
+      {"v": "0", "t": "chaves de API e custo"}
+    ],
     "aulas_titulo": "As aulas",
-    "aulas_sub": "Uma visão geral por degrau. A prática completa de cada degrau fica nos exercícios e nos cursos de cada sequência.",
-    "blocos": []
+    "aulas_sub": "Cada aula termina num comando que você roda e numa saída que confere. O kit está no próprio repositório do curso.",
+    "blocos": [
+      {"t": "Para quem é", "itens": [
+        "Dev que roda Node e terminal e quer que o seu serviço seja usado por agentes (Claude Code, Codex e outros clientes MCP).",
+        "Quem tem um servidor MCP feito em 2025 com SSE, sessão e initialize e precisa saber o que mudou.",
+        "Quem prefere Python: o SDK oficial em Python (mcp 2.3.0) também traz a revisão nova; os conceitos valem igual."
+      ]},
+      {"t": "O que você sai fazendo", "itens": [
+        "Um servidor com ferramenta só de leitura, ferramenta com consequência, recurso e prompt.",
+        "O mesmo código por stdio e por Streamable HTTP sem estado, com guarda de Host e Origin.",
+        "Confirmação do usuário no meio da chamada (MRTR) e token com escopo mínimo por ferramenta.",
+        "Uma interface MCP Apps, a bateria de testes e o servidor ligado ao Claude Code e ao Codex."
+      ]},
+      {"t": "Onde este curso entra na Formação WebMCP", "itens": [
+        "Curso 0 mostra como os agentes usam um site; este é o lado do servidor (backend).",
+        "Curso 2 leva ferramentas para dentro da página com WebMCP; curso 4 aprofunda as ameaças.",
+        "Ameaças de loop autônomo e evals a fundo ficam na Formação LOOP-R Engenharia."
+      ]}
+    ]
   },
   "ui": {
     "pular": "Pular para o conteúdo",

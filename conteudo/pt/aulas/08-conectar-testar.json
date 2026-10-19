@@ -1,0 +1,498 @@
+{
+  "slug": "conectar-testar",
+  "num": 8,
+  "menu": "Conectar",
+  "titulo": "Conectar ao Claude Code/Codex, testes automáticos e Registry (preview)",
+  "titulo_curto": "Conectar e testar",
+  "minutos": 20,
+  "lead": "Servidor pronto é servidor que o seu agente usa e que um teste confere a cada mudança. Nesta aula você roda a bateria automática do kit, liga o servidor ao Claude Code e ao Codex da sua assinatura e prepara o server.json do Registry oficial, que ainda está em preview. Fecha com o mapa e o seu plano.",
+  "objetivo": "ligar o servidor ao Claude Code e ao Codex, rodar a bateria automática e preparar o server.json do Registry, que está em preview.",
+  "competencias": [
+    "testar-servidor-mcp-automaticamente",
+    "registrar-servidor-no-claude-code-e-codex",
+    "descrever-servidor-para-o-registry"
+  ],
+  "aprende": [
+    {
+      "icone": "check",
+      "t": "Bateria com node --test: era nova, era antiga, esquema, MRTR e stdio"
+    },
+    {
+      "icone": "terminal",
+      "t": "claude mcp add e codex mcp add, e o que cada um grava"
+    },
+    {
+      "icone": "nuvem",
+      "t": "server.json e mcp-publisher validate, sem publicar"
+    },
+    {
+      "icone": "calendario",
+      "t": "O mapa do curso e o plano com datas"
+    }
+  ],
+  "hero_alt": "Notebook com terminal desfocado e linhas de teste, um conector sendo plugado num mini servidor e uma prancheta.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Do kit ao agente que você usa",
+      "sub": "Clique em cada etapa.",
+      "nos": [
+        {
+          "icone": "check",
+          "titulo": "Testes",
+          "sub": "npm test",
+          "forte": true,
+          "detalhe": "Sete testes sem porta, sem modelo e sem custo. Rode antes de cada commit: se a revisão do protocolo ou o SDK mudar, é aqui que você descobre."
+        },
+        {
+          "icone": "terminal",
+          "titulo": "Claude Code",
+          "sub": "claude mcp add",
+          "detalhe": "Registra o comando que inicia o servidor. Escopo de projeto grava <code>.mcp.json</code> na pasta e pede aprovação na primeira vez que você abre o <code>claude</code> ali."
+        },
+        {
+          "icone": "terminal",
+          "titulo": "Codex",
+          "sub": "codex mcp add",
+          "detalhe": "Grava o servidor em <code>~/.codex/config.toml</code> (escopo global do Codex)."
+        },
+        {
+          "icone": "nuvem",
+          "titulo": "Registry",
+          "sub": "preview",
+          "detalhe": "Catálogo oficial de servidores, só metadados. Em preview: pode haver mudança incompatível e reset de dados. Publicar exige namespace verificado."
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "A bateria automática",
+      "sub": "O cliente oficial fala com o handler no mesmo processo; o último teste sobe o processo stdio de verdade.",
+      "blocos": [
+        {
+          "rot": "Terminal · npm test",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nnpm test 2>&1 | grep -E \"^(✔|✖|ℹ (tests|pass|fail))\"; echo \"saída: ${PIPESTATUS[0]}\""
+        },
+        {
+          "rot": "Arquivo · kit/teste.mjs",
+          "icone": "arquivo",
+          "conteudo": "// teste.mjs — bateria automática do servidor de turmas (node --test teste.mjs).\n// Roda sem porta, sem modelo e sem custo: o cliente oficial fala com o handler no mesmo processo.\nimport { test, after } from 'node:test';\nimport assert from 'node:assert/strict';\nimport { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';\nimport { StdioClientTransport } from '@modelcontextprotocol/client/stdio';\nimport { createMcpHandler } from '@modelcontextprotocol/server';\nimport { createServer, TURMAS } from './servidor.mjs';\n\nconst handler = createMcpHandler(createServer);\nafter(() => handler.close());\n\nasync function cliente(modo = 'auto', responde = null) {\n  const c = new Client({ name: 'teste', version: '1.0.0' },\n    { versionNegotiation: { mode: modo }, capabilities: { elicitation: { form: {} } } });\n  if (responde) c.setRequestHandler('elicitation/create', async () => responde);\n  await c.connect(new StreamableHTTPClientTransport(new URL('http://teste.local/mcp'),\n    { fetch: (url, init) => handler.fetch(new Request(url, init)) }));\n  return c;\n}\n\ntest('cliente novo negocia a revisão 2026-07-28 (era modern)', async () => {\n  const c = await cliente('auto');\n  assert.equal(c.getProtocolEra(), 'modern');\n  await c.close();\n});\n\ntest('cliente antigo (initialize, 2025-11-25) ainda é atendido', async () => {\n  const c = await cliente('legacy');\n  assert.equal(c.getProtocolEra(), 'legacy');\n  const { tools } = await c.listTools();\n  assert.ok(tools.some(t => t.name === 'buscar_turmas'));\n  await c.close();\n});\n\ntest('buscar_turmas é só leitura e devolve dado estruturado', async () => {\n  const c = await cliente();\n  const { tools } = await c.listTools();\n  assert.equal(tools.find(t => t.name === 'buscar_turmas').annotations.readOnlyHint, true);\n  const r = await c.callTool({ name: 'buscar_turmas', arguments: { termo: 'html' } });\n  assert.deepEqual(r.structuredContent.turmas.map(t => t.id), ['html-01']);\n  await c.close();\n});\n\ntest('argumento inválido volta como isError, sem rodar o handler', async () => {\n  const c = await cliente();\n  const r = await c.callTool({ name: 'buscar_turmas', arguments: { termo: 'x' } });\n  assert.equal(r.isError, true);\n  await c.close();\n});\n\ntest('reservar_vaga só reserva depois da confirmação (MRTR)', async () => {\n  const antes = TURMAS.find(t => t.id === 'mcp-01').vagas;\n  const recusa = await cliente('auto', { action: 'decline' });\n  const r1 = await recusa.callTool({ name: 'reservar_vaga', arguments: { turma_id: 'mcp-01', email: 'a@exemplo.com' } });\n  assert.equal(r1.isError, true);\n  assert.equal(TURMAS.find(t => t.id === 'mcp-01').vagas, antes);\n  await recusa.close();\n  const aceita = await cliente('auto', { action: 'accept', content: { confirmar: true } });\n  const r2 = await aceita.callTool({ name: 'reservar_vaga', arguments: { turma_id: 'mcp-01', email: 'a@exemplo.com' } });\n  assert.equal(r2.isError, undefined);\n  assert.equal(TURMAS.find(t => t.id === 'mcp-01').vagas, antes - 1);\n  await aceita.close();\n});\n\ntest('turma sem vaga é recusada com isError', async () => {\n  const c = await cliente('auto', { action: 'accept', content: { confirmar: true } });\n  const r = await c.callTool({ name: 'reservar_vaga', arguments: { turma_id: 'mcp-02', email: 'a@exemplo.com' } });\n  assert.equal(r.isError, true);\n  await c.close();\n});\n\ntest('o processo stdio sobe e lista as ferramentas', async () => {\n  const c = new Client({ name: 'teste-stdio', version: '1.0.0' }, { versionNegotiation: { mode: 'auto' } });\n  await c.connect(new StdioClientTransport({ command: process.execPath, args: [new URL('./stdio.mjs', import.meta.url).pathname] }));\n  const { tools } = await c.listTools();\n  assert.deepEqual(tools.map(t => t.name).sort(), ['buscar_turmas', 'reservar_vaga']);\n  await c.close();\n});"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Saída capturada (19/10/2026)",
+            "html": "<pre>✔ cliente novo negocia a revisão 2026-07-28 (era modern) (43.097669ms)\n✔ cliente antigo (initialize, 2025-11-25) ainda é atendido (37.721172ms)\n✔ buscar_turmas é só leitura e devolve dado estruturado (20.015635ms)\n✔ argumento inválido volta como isError, sem rodar o handler (3.965184ms)\n✔ reservar_vaga só reserva depois da confirmação (MRTR) (15.684146ms)\n✔ turma sem vaga é recusada com isError (2.665568ms)\n✔ o processo stdio sobe e lista as ferramentas (243.920508ms)\nℹ tests 7\nℹ pass 7\nℹ fail 0\nsaída: 0</pre><p>Os tempos mudam a cada rodada; o que importa é <code>ℹ fail 0</code>. Teste da revisão nova usa <code>handler.fetch</code>: o par em memória (<code>InMemoryTransport</code>) só conecta a era 2025.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Ligue ao Claude Code e ao Codex",
+      "sub": "Comandos locais: não chamam modelo. Rode na pasta do kit (ou na do seu servidor).",
+      "blocos": [
+        {
+          "rot": "Terminal · Claude Code",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nclaude mcp add -s project turmas -- node \"$PWD/stdio.mjs\"\nclaude mcp get turmas"
+        },
+        {
+          "rot": "Terminal · Codex",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\ncodex mcp add turmas -- node \"$PWD/stdio.mjs\"\ncodex mcp list"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Claude Code (19/10/2026)",
+            "html": "<pre>Added stdio MCP server turmas with command: node /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/stdio.mjs to project config\nFile modified: /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/.mcp.json\nturmas:\n  Scope: Project config (shared via .mcp.json)\n  Status: ⏸ Pending approval (run `claude` to approve)\n  Type: stdio\n  Command: node\n  Args: /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/stdio.mjs\n  Environment:\n\nTo remove this server, run: claude mcp remove turmas -s project</pre><p>Rode <code>claude</code> uma vez nessa pasta e aprove o servidor <code>turmas</code>. Depois, <code>claude mcp list</code> mostra a linha do servidor terminando em <code>✔ Connected</code>.</p>"
+          },
+          {
+            "rot": "Codex (19/10/2026)",
+            "html": "<pre>Added global MCP server 'turmas'.\nName    Command  Args                                                            Env  Cwd  Status   Auth       \nturmas  node     /home/nmaldaner/projetos/formacao-webmcp-mcp-v72/kit/stdio.mjs  -    -    enabled  Unsupported</pre><p>O comando gravou no <code>config.toml</code> do Codex um bloco <code>[mcp_servers.turmas]</code> com <code>command = \"node\"</code> e o caminho do <code>stdio.mjs</code>. Captura feita com uma pasta de configuração separada (CODEX_HOME), para não mexer na configuração do autor.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "simconversa",
+      "titulo": "O agente vai reservar uma vaga",
+      "sub": "Simulação: você está no Claude Code com o servidor de turmas ligado. Escolha a resposta.",
+      "personagem": {
+        "nome": "Agente",
+        "papel": "Claude Code com o servidor turmas"
+      },
+      "inicio": "pedido",
+      "falas": {
+        "pedido": {
+          "cliente": "Achei a turma html-01 com 3 vagas. Quer que eu chame reservar_vaga para aluno@exemplo.com? A ferramenta tem consequência e vai pedir confirmação.",
+          "opcoes": [
+            {
+              "t": "Pode chamar. Quando a confirmação aparecer, eu respondo.",
+              "vai": "confirma",
+              "nota": 2,
+              "comenta": "Isso. A ferramenta pede o sim no meio da chamada (MRTR) e você decide na hora, vendo turma e e-mail."
+            },
+            {
+              "t": "Aprova sempre essa ferramenta, para não me perguntar mais.",
+              "vai": "sempre",
+              "nota": 0,
+              "comenta": "Aprovar para sempre uma ferramenta com consequência tira o humano justamente onde ele importa."
+            },
+            {
+              "t": "Antes, busca de novo para eu ver as vagas atualizadas.",
+              "vai": "busca",
+              "nota": 1,
+              "comenta": "Não faz mal (buscar é só leitura), mas a vaga é conferida dentro de reservar_vaga de qualquer jeito."
+            }
+          ]
+        },
+        "busca": {
+          "cliente": "buscar_turmas devolveu html-01 com 3 vagas. Sigo com a reserva?",
+          "opcoes": [
+            {
+              "t": "Sim, chama reservar_vaga.",
+              "vai": "confirma",
+              "nota": 0,
+              "comenta": "Ok, você chegou ao mesmo ponto com uma chamada a mais."
+            },
+            {
+              "t": "Não, deixa para depois.",
+              "vai": "fim-adiado",
+              "nota": 0,
+              "comenta": "Tudo bem: nada foi reservado."
+            }
+          ]
+        },
+        "confirma": {
+          "cliente": "A ferramenta pergunta: Reservar 1 vaga em \"HTML semântico para agentes\" para aluno@exemplo.com? Respondo sim?",
+          "opcoes": [
+            {
+              "t": "Sim, é isso mesmo.",
+              "vai": "fim-ok",
+              "nota": 2,
+              "comenta": "Confirmação consciente: turma e e-mail estão na pergunta."
+            },
+            {
+              "t": "Não, o e-mail está errado.",
+              "vai": "fim-recusa",
+              "nota": 2,
+              "comenta": "Ótimo uso do não: a ferramenta devolve isError e nada muda."
+            }
+          ]
+        },
+        "sempre": {
+          "cliente": "Certo. Posso também aprovar sozinho as próximas reservas, sem perguntar?",
+          "opcoes": [
+            {
+              "t": "Não. Reserva sempre passa por mim.",
+              "vai": "confirma",
+              "nota": 1,
+              "comenta": "Você corrigiu a rota: consequência volta a pedir confirmação."
+            },
+            {
+              "t": "Pode, é mais rápido.",
+              "vai": "fim-risco",
+              "nota": 0,
+              "comenta": "Rápido e sem freio: uma descrição enganosa ou um pedido mal entendido vira reserva real."
+            }
+          ]
+        },
+        "fim-ok": {
+          "fim": true,
+          "titulo": "Reservado com o seu sim",
+          "texto": "A ferramenta só agiu depois da sua confirmação, com turma e e-mail na pergunta."
+        },
+        "fim-recusa": {
+          "fim": true,
+          "titulo": "Recusado sem efeito",
+          "texto": "O não virou isError e a vaga continua lá. É o caminho que o teste da aula 5 confere."
+        },
+        "fim-adiado": {
+          "fim": true,
+          "titulo": "Nada feito",
+          "texto": "Sem chamada com consequência, sem risco. Quando quiser, peça de novo."
+        },
+        "fim-risco": {
+          "fim": true,
+          "titulo": "Sem humano na consequência",
+          "texto": "Aprovação permanente em ferramenta com consequência é o que o curso 4 chama de tirar o freio. Volte a pedir confirmação."
+        }
+      },
+      "licao": "Ferramenta só de leitura pode ser aprovada sem pergunta; ferramenta com consequência pede o seu sim a cada vez."
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Descreva o servidor para o Registry (sem publicar)",
+      "sub": "Registry em preview em 19/10/2026. Precisa do mcp-publisher (releases do repositório modelcontextprotocol/registry). validate consulta registry.modelcontextprotocol.io e não publica nada.",
+      "blocos": [
+        {
+          "rot": "Arquivo · kit/server.json",
+          "icone": "arquivo",
+          "conteudo": "{\n  \"$schema\": \"https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json\",\n  \"name\": \"io.github.seu-usuario/turmas\",\n  \"title\": \"Turmas\",\n  \"description\": \"Busca turmas e reserva vaga com confirmação do usuário.\",\n  \"repository\": {\n    \"url\": \"https://github.com/seu-usuario/turmas-mcp\",\n    \"source\": \"github\"\n  },\n  \"version\": \"1.0.0\",\n  \"remotes\": [\n    {\n      \"type\": \"streamable-http\",\n      \"url\": \"https://turmas.exemplo.com/mcp\"\n    }\n  ]\n}"
+        },
+        {
+          "rot": "Terminal · validar",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nmcp-publisher validate      # lê server.json da pasta; não publica nada\necho \"saída: $?\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Saída capturada (19/10/2026)",
+            "html": "<pre>Validating against https://registry.modelcontextprotocol.io...\n✅ server.json is valid\nsaída: 0</pre>"
+          },
+          {
+            "rot": "Erro comum: descrição longa",
+            "html": "<pre>Validating against https://registry.modelcontextprotocol.io...\nError: validation failed: server returned status 422: {\"title\":\"Unprocessable Entity\",\"status\":422,\"detail\":\"validation failed\",\"errors\":[{\"message\":\"expected length &lt;= 100\",\"location\":\"body.description\",\"value\":\"Busca turmas e reserva vaga com confirmação do usuário, mostra painel, conversa com o agente e muito mais coisas úteis aqui.\"}]}\n\nsaída: 1</pre><p>O Registry limita <code>description</code> a 100 caracteres.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Prática",
+      "sub": "A bateria, os dois agentes e o seu servidor.",
+      "exercicios": [
+        {
+          "id": "e21",
+          "titulo": "E21 · Bateria verde",
+          "min": "5 min",
+          "texto": "Rode <b>npm test</b> na pasta do kit.",
+          "pronto": "<code>npm test</code> → <code>ℹ pass 7</code>, <code>ℹ fail 0</code> e <code>saída: 0</code>."
+        },
+        {
+          "id": "e22",
+          "titulo": "E22 · No Claude Code",
+          "min": "10 min",
+          "texto": "Rode o bloco do Claude Code, abra <code>claude</code> na pasta, aprove o servidor e peça \"tem turma de html com vaga?\". Use o modelo da sua assinatura com parcimônia: uma pergunta basta.",
+          "pronto": "<code>claude mcp list | grep turmas</code> → linha terminando em <code>✔ Connected</code> (o texto da resposta do modelo não é critério)."
+        },
+        {
+          "id": "e23",
+          "titulo": "E23 · No Codex",
+          "min": "5 min",
+          "texto": "Rode o bloco do Codex.",
+          "pronto": "<code>codex mcp list</code> → linha <code>turmas</code> com <code>enabled</code>."
+        },
+        {
+          "id": "e24",
+          "titulo": "E24 · server.json do seu serviço",
+          "min": "10 min",
+          "texto": "Troque nome, descrição, repositório e URL no <code>server.json</code> pelos do seu serviço. Publicar é opcional e exige namespace verificado.",
+          "pronto": "<code>mcp-publisher validate</code> → <code>✅ server.json is valid</code>."
+        }
+      ]
+    },
+    {
+      "tipo": "mapa",
+      "titulo": "O mapa do curso",
+      "sub": "Quatro entregas, oito aulas. Clique num exercício para ver o \"pronto quando\".",
+      "degraus": [
+        {
+          "aula": "primeiro-servidor",
+          "icone": "terminal",
+          "quando": "Aulas 1–2",
+          "titulo": "Servidor",
+          "sub": "stdio + Inspector",
+          "saida": "Servidor de turmas respondendo por stdio.",
+          "passo": "Separe as peças e suba o primeiro servidor com versões fixas."
+        },
+        {
+          "aula": "boa-ferramenta",
+          "icone": "lista",
+          "quando": "Aulas 3–4",
+          "titulo": "Ferramentas",
+          "sub": "esquema + HTTP",
+          "saida": "Ferramentas bem descritas, servidas sem estado.",
+          "passo": "Desenho que o modelo entende e o mesmo servidor por Streamable HTTP."
+        },
+        {
+          "aula": "confirmacao-mrtr",
+          "icone": "escudo",
+          "quando": "Aulas 5–6",
+          "titulo": "Freios",
+          "sub": "MRTR + token",
+          "saida": "Confirmação no meio e escopo mínimo.",
+          "passo": "Consequência pede sim; remoto pede token com o escopo certo."
+        },
+        {
+          "aula": "conectar-testar",
+          "icone": "check",
+          "quando": "Aulas 7–8",
+          "titulo": "Entrega",
+          "sub": "Apps + testes",
+          "saida": "Bateria verde e servidor no seu agente.",
+          "passo": "Interface opcional, testes automáticos, Claude Code, Codex e Registry."
+        }
+      ],
+      "resultado": {
+        "titulo": "Ao final do curso",
+        "texto": "Um servidor MCP na revisão 2026-07-28, testado e ligado ao seu agente.",
+        "total": "24 exercícios"
+      },
+      "legenda": "Ordem sugerida: cada par de aulas usa o kit da anterior."
+    },
+    {
+      "tipo": "gerador",
+      "titulo": "Gere o seu plano com datas",
+      "sub": "Escolha a data de início e quanto tempo você tem por semana.",
+      "curso": "Servidor MCP do seu serviço",
+      "horas_padrao": 4,
+      "degraus": [
+        {
+          "titulo": "Aula 1 · Anatomia",
+          "aula": "anatomia"
+        },
+        {
+          "titulo": "Aula 2 · Primeiro servidor",
+          "aula": "primeiro-servidor"
+        },
+        {
+          "titulo": "Aula 3 · Boa ferramenta",
+          "aula": "boa-ferramenta"
+        },
+        {
+          "titulo": "Aula 4 · HTTP sem estado",
+          "aula": "http-sem-estado"
+        },
+        {
+          "titulo": "Aula 5 · Confirmação (MRTR)",
+          "aula": "confirmacao-mrtr"
+        },
+        {
+          "titulo": "Aula 6 · Autorização",
+          "aula": "autorizacao"
+        },
+        {
+          "titulo": "Aula 7 · MCP Apps",
+          "aula": "mcp-apps"
+        },
+        {
+          "titulo": "Aula 8 · Conectar e testar",
+          "aula": "conectar-testar"
+        }
+      ],
+      "txt": {
+        "titulo": "Plano — Servidor MCP do seu serviço",
+        "inicio": "Início",
+        "ritmo": "Ritmo",
+        "termino": "Término previsto",
+        "ate": "até",
+        "pronto": "pronto quando",
+        "semanas": "semanas",
+        "travou": "## O que travou e a regra que criei",
+        "h": "h por semana",
+        "exs": "exercícios"
+      }
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Teste da aula",
+      "perguntas": [
+        {
+          "p": "Por que a bateria usa handler.fetch e não InMemoryTransport para testar a revisão nova?",
+          "opcoes": [
+            "O par em memória só conecta a era 2025",
+            "handler.fetch é mais rápido",
+            "InMemoryTransport precisa de porta",
+            "handler.fetch dispensa o cliente"
+          ],
+          "certa": 0,
+          "explica": "A doc do SDK v2: createLinkedPair conecta só instâncias da era 2025; handler.fetch é a entrada no mesmo processo para a 2026-07-28.",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "Depois de claude mcp add -s project, claude mcp get mostra Pending approval. O que falta?",
+          "opcoes": [
+            "Publicar no Registry",
+            "Abrir o claude na pasta e aprovar o servidor",
+            "Instalar o Inspector",
+            "Gerar um token OAuth"
+          ],
+          "certa": 1,
+          "explica": "Servidor de projeto (.mcp.json) pede aprovação na primeira vez. Aprovado, aparece ✔ Connected.",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "O que o mcp-publisher validate faz?",
+          "opcoes": [
+            "Publica o servidor no Registry",
+            "Testa as ferramentas do servidor",
+            "Valida o server.json sem publicar",
+            "Gera o package-lock.json"
+          ],
+          "certa": 2,
+          "explica": "Valida contra o Registry e não publica. Publicar é outro comando e exige namespace verificado.",
+          "ref": "codigo"
+        },
+        {
+          "p": "Em 19/10/2026, como o Registry oficial deve ser tratado?",
+          "opcoes": [
+            "Como padrão estável e obrigatório",
+            "Como substituto do npm",
+            "Como lista fechada só para empresas",
+            "Como preview, sujeito a mudança e reset"
+          ],
+          "certa": 3,
+          "explica": "O próprio Registry avisa: preview, com possíveis mudanças incompatíveis e reset de dados.",
+          "ref": "diagrama"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "Em três frases",
+      "itens": [
+        {
+          "t": "Testes",
+          "texto": "npm test antes de cada mudança: era nova, era antiga, esquema, MRTR, stdio."
+        },
+        {
+          "t": "Agentes",
+          "texto": "claude mcp add e codex mcp add com o mesmo comando de stdio."
+        },
+        {
+          "t": "Registry",
+          "texto": "server.json validado; publicar é opcional e está em preview."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir além",
+      "links": [
+        {
+          "t": "Próximo curso: WebMCP no seu site (curso 2)",
+          "href": "https://inematds.github.io/formacao-webmcp-site-v72/"
+        },
+        {
+          "t": "SDK v2: testar um servidor",
+          "href": "https://ts.sdk.modelcontextprotocol.io/v2/testing"
+        },
+        {
+          "t": "Registry oficial: sobre (preview)",
+          "href": "https://modelcontextprotocol.io/registry/about"
+        },
+        {
+          "t": "Evals e verificação a fundo (LOOP-R Engenharia)",
+          "href": "https://inematds.github.io/loop-r-eng-verificacao-v72/"
+        },
+        {
+          "t": "Tríade letal e segurança do loop (LOOP-R Engenharia)",
+          "href": "https://inematds.github.io/loop-r-eng-seguranca-v72/"
+        }
+      ]
+    }
+  ]
+}

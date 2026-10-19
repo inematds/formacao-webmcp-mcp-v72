@@ -1,0 +1,282 @@
+{
+  "slug": "anatomia",
+  "num": 1,
+  "menu": "Anatomia",
+  "titulo": "Anatomia: ferramentas, recursos e prompts; cliente, servidor e transporte",
+  "titulo_curto": "Anatomia do MCP",
+  "minutos": 15,
+  "lead": "Antes de escrever código, separe as peças. O servidor MCP oferece três coisas (ferramentas, recursos e prompts), o cliente vive dentro do aplicativo com o modelo, e o transporte é só o cano. Nesta aula você liga um cliente ao servidor do kit e vê cada peça listada.",
+  "objetivo": "separar ferramenta, recurso e prompt e dizer quem é host, cliente, servidor e transporte no seu serviço.",
+  "competencias": [
+    "distinguir-primitivas-do-mcp",
+    "mapear-host-cliente-servidor",
+    "reconhecer-a-revisao-do-protocolo"
+  ],
+  "aprende": [
+    {
+      "icone": "camadas",
+      "t": "Host, cliente, transporte e servidor: quem chama quem"
+    },
+    {
+      "icone": "chip",
+      "t": "Ferramenta é ação que o modelo escolhe; recurso é dado que o cliente lê; prompt é modelo que a pessoa escolhe"
+    },
+    {
+      "icone": "relogio",
+      "t": "A revisão vigente do protocolo é a 2026-07-28, e o que saiu dela"
+    },
+    {
+      "icone": "terminal",
+      "t": "Listar as peças do servidor do kit num comando"
+    }
+  ],
+  "hero_alt": "Vista de cima de uma mesa escura com uma ferramenta, uma pasta e um cartão ligados por cabos a um pequeno hub.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Do aplicativo ao seu serviço",
+      "sub": "Clique em cada bloco.",
+      "nos": [
+        {
+          "icone": "usuario",
+          "titulo": "Host",
+          "sub": "app com modelo",
+          "detalhe": "O aplicativo onde o modelo trabalha: Claude Code, Codex, VS Code com agente. É ele que mostra a ferramenta para o modelo e pede a sua aprovação antes de chamar."
+        },
+        {
+          "icone": "chat",
+          "titulo": "Cliente",
+          "sub": "dentro do host",
+          "detalhe": "A parte do host que fala MCP. Um cliente por servidor ligado. Ele lista o que o servidor oferece e faz as chamadas."
+        },
+        {
+          "icone": "seta",
+          "titulo": "Transporte",
+          "sub": "stdio ou HTTP",
+          "detalhe": "Por onde as mensagens JSON-RPC passam. <b>stdio</b>: o host inicia o seu servidor como processo e conversa pelo stdin/stdout. <b>Streamable HTTP</b>: o servidor fica numa URL e atende pedidos. SSE como transporte próprio é coisa de tutorial antigo."
+        },
+        {
+          "icone": "terminal",
+          "titulo": "Servidor",
+          "sub": "o seu serviço",
+          "forte": true,
+          "detalhe": "O programa que você escreve. Ele não chama modelo nenhum: só anuncia o que sabe fazer e responde às chamadas.",
+          "itens": [
+            {
+              "t": "Ferramentas",
+              "sub": "o modelo escolhe chamar",
+              "icone": "chip"
+            },
+            {
+              "t": "Recursos",
+              "sub": "o cliente lê",
+              "icone": "arquivo"
+            },
+            {
+              "t": "Prompts",
+              "sub": "a pessoa escolhe",
+              "icone": "lista"
+            }
+          ]
+        }
+      ],
+      "legenda": "Divisão de controle conforme a documentação do SDK oficial v2 (páginas Tools, Resources e Prompts), lida em 19/10/2026."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "As três coisas que um servidor oferece",
+      "sub": "No kit, um serviço fictício de turmas de curso.",
+      "passos": [
+        {
+          "titulo": "Ferramenta",
+          "sub": "ação",
+          "texto": [
+            "Uma função que o modelo decide chamar a partir do nome, da descrição e do esquema de entrada. Pode só ler ou pode mudar algo no mundo.",
+            "No kit: <code>buscar_turmas</code> (só leitura) e <code>reservar_vaga</code> (tem consequência)."
+          ],
+          "exemplo": {
+            "rot": "Pergunta que leva o modelo a chamar",
+            "texto": "Tem turma de MCP com vaga?"
+          }
+        },
+        {
+          "titulo": "Recurso",
+          "sub": "dado",
+          "texto": [
+            "Dado só de leitura, identificado por uma URI, que o cliente lista e anexa como contexto. Quem decide ler é o aplicativo, não o modelo.",
+            "No kit: <code>turmas://catalogo</code>, o catálogo inteiro em JSON."
+          ]
+        },
+        {
+          "titulo": "Prompt",
+          "sub": "modelo de pedido",
+          "texto": [
+            "Um pedido pronto, com argumentos, que o cliente mostra para a pessoa escolher (como um comando de barra ou item de menu).",
+            "No kit: <code>convite_turma</code>, que monta o pedido de um convite para uma turma."
+          ]
+        },
+        {
+          "titulo": "Na dúvida",
+          "sub": "regra prática",
+          "texto": [
+            "Se muda algo ou depende da pergunta do usuário, é ferramenta. Se é contexto estável que o aplicativo pode anexar, é recurso. Se é um atalho que a pessoa dispara, é prompt.",
+            "A maior parte dos serviços começa só com ferramentas, e tudo bem."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "texto",
+      "titulo": "Revisão 2026-07-28: o que mudou em uma tela",
+      "paragrafos": [
+        "A versão vigente do protocolo é a <b>2026-07-28</b> (página de versionamento do MCP, lida em 19/10/2026). A anterior era a 2025-11-25.",
+        "O que mais muda para quem vem de 2025: não há mais aperto de mão <code>initialize</code> nem sessão (<code>Mcp-Session-Id</code>); cada pedido leva versão e capacidades em <code>_meta</code>; o cliente descobre o servidor com <code>server/discover</code>; e o servidor que precisa perguntar algo ao usuário devolve <code>input_required</code> em vez de abrir um pedido próprio. Roots, Sampling e Logging foram descontinuados.",
+        "O SDK oficial que implementa isso é a linha v2 (<code>@modelcontextprotocol/server</code> e <code>@modelcontextprotocol/client</code>, 2.3.1, de 05/10/2026). O pacote antigo <code>@modelcontextprotocol/sdk</code> (1.32.1) ainda fala a 2025-11-25: é o que você vai achar na maioria dos tutoriais."
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Liste as peças do servidor do kit",
+      "sub": "Precisa do kit instalado (aula 2, primeiro bloco). O cliente fala com o servidor no mesmo processo, sem porta.",
+      "blocos": [
+        {
+          "rot": "Terminal · listar",
+          "icone": "terminal",
+          "conteudo": "cd ~/projetos/formacao-webmcp-mcp-v72/kit\nnode listar.mjs; echo \"saída: $?\""
+        },
+        {
+          "rot": "Arquivo · kit/listar.mjs",
+          "icone": "arquivo",
+          "conteudo": "// listar.mjs — liga um cliente MCP ao servidor de turmas, no mesmo processo (sem porta),\n// e mostra a anatomia: era do protocolo, ferramentas, recursos e prompts.\nimport { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';\nimport { createMcpHandler } from '@modelcontextprotocol/server';\nimport { createServer } from './servidor.mjs';\n\nconst handler = createMcpHandler(createServer);\nconst transporte = new StreamableHTTPClientTransport(new URL('http://teste.local/mcp'), {\n  fetch: (url, init) => handler.fetch(new Request(url, init))\n});\n// mode 'auto': pergunta server/discover; se o servidor for antigo, cai no initialize.\nconst cliente = new Client({ name: 'listar', version: '1.0.0' }, { versionNegotiation: { mode: 'auto' } });\nawait cliente.connect(transporte);\n\nconst { tools } = await cliente.listTools();\nconst { resources } = await cliente.listResources();\nconst { prompts } = await cliente.listPrompts();\nconsole.log(`era: ${cliente.getProtocolEra()}`);\nfor (const t of tools) console.log(`ferramenta: ${t.name} · readOnlyHint=${t.annotations?.readOnlyHint}`);\nfor (const r of resources) console.log(`recurso: ${r.uri}`);\nfor (const p of prompts) console.log(`prompt: ${p.name}`);\nconsole.log(`${tools.length} ferramentas · ${resources.length} recurso · ${prompts.length} prompt`);\n\nawait cliente.close();\nawait handler.close();"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Saída capturada (19/10/2026)",
+            "html": "<pre>era: modern\nferramenta: buscar_turmas · readOnlyHint=true\nferramenta: reservar_vaga · readOnlyHint=false\nrecurso: turmas://catalogo\nprompt: convite_turma\n2 ferramentas · 1 recurso · 1 prompt\nsaída: 0</pre><p><code>era: modern</code> quer dizer que cliente e servidor combinaram a revisão 2026-07-28. Com <code>mode: 'legacy'</code> (o padrão do cliente v2) eles cairiam no <code>initialize</code> de 2025.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Prática",
+      "sub": "Ensaio no kit e o mapa do seu serviço.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Ver as peças",
+          "min": "5 min",
+          "texto": "Rode o bloco <b>listar</b> depois de instalar o kit (aula 2, primeiro bloco).",
+          "pronto": "<code>node listar.mjs</code> → <code>2 ferramentas · 1 recurso · 1 prompt</code>, com <code>era: modern</code> e <code>saída: 0</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · O seu serviço em três colunas",
+          "min": "15 min",
+          "texto": "Num arquivo <code>mapa-mcp.md</code>, liste o que o seu serviço faria como ferramenta, como recurso e como prompt. Marque cada ferramenta como <b>leitura</b> ou <b>consequência</b>.",
+          "pronto": "<code>grep -c -E \"leitura|consequência\" mapa-mcp.md</code> → pelo menos <code>3</code>."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Teste da aula",
+      "perguntas": [
+        {
+          "p": "Quem decide chamar uma ferramenta MCP?",
+          "opcoes": [
+            "O servidor, quando recebe dados novos",
+            "O modelo, a partir do nome, da descrição e do esquema",
+            "A pessoa, escolhendo num menu do cliente",
+            "O transporte, conforme o tipo de mensagem"
+          ],
+          "certa": 1,
+          "explica": "Ferramenta é escolha do modelo. Menu para a pessoa é prompt; dado que o aplicativo anexa é recurso.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "O catálogo inteiro de turmas, em JSON, que o aplicativo pode anexar como contexto, é o quê?",
+          "opcoes": [
+            "Uma ferramenta só de leitura",
+            "Um prompt com argumento",
+            "Um transporte de dados",
+            "Um recurso com URI"
+          ],
+          "certa": 3,
+          "explica": "Dado estável identificado por URI (<code>turmas://catalogo</code>) é recurso. Se dependesse da pergunta do usuário, seria ferramenta.",
+          "ref": "passos",
+          "cert": true
+        },
+        {
+          "p": "O que a revisão 2026-07-28 tirou do protocolo?",
+          "opcoes": [
+            "O aperto de mão initialize e a sessão",
+            "As ferramentas com esquema de entrada",
+            "O transporte stdio",
+            "O formato JSON-RPC"
+          ],
+          "certa": 0,
+          "explica": "stdio e Streamable HTTP continuam; JSON-RPC também. Saíram initialize, sessão e <code>Mcp-Session-Id</code>; entrou <code>server/discover</code>.",
+          "ref": "texto",
+          "cert": true
+        },
+        {
+          "p": "Você instala <code>@modelcontextprotocol/sdk</code> 1.32.1 seguindo um tutorial. Que revisão ele fala?",
+          "opcoes": [
+            "2026-07-28, a vigente",
+            "Qualquer uma, conforme o cliente",
+            "2025-11-25, a anterior",
+            "Nenhuma: é só o cliente"
+          ],
+          "certa": 2,
+          "explica": "A linha v1 tem <code>LATEST_PROTOCOL_VERSION = '2025-11-25'</code>. A 2026-07-28 está na linha v2 (<code>@modelcontextprotocol/server</code> 2.3.1).",
+          "ref": "texto"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "Em três frases",
+      "itens": [
+        {
+          "t": "Peças",
+          "texto": "Host com modelo, cliente dentro dele, transporte e o seu servidor."
+        },
+        {
+          "t": "Primitivas",
+          "texto": "Ferramenta (modelo escolhe), recurso (cliente lê), prompt (pessoa escolhe)."
+        },
+        {
+          "t": "Revisão",
+          "texto": "2026-07-28, sem initialize nem sessão; SDK v2 2.3.1 a implementa."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir além",
+      "links": [
+        {
+          "t": "Versionamento do MCP (revisão vigente)",
+          "href": "https://modelcontextprotocol.io/specification/versioning"
+        },
+        {
+          "t": "Changelog da revisão 2026-07-28",
+          "href": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
+        },
+        {
+          "t": "SDK oficial TypeScript v2: documentação",
+          "href": "https://ts.sdk.modelcontextprotocol.io/v2/"
+        },
+        {
+          "t": "Curso 0 da formação: como os agentes usam um site",
+          "href": "https://inematds.github.io/formacao-webmcp-base-v72/"
+        }
+      ]
+    }
+  ]
+}
